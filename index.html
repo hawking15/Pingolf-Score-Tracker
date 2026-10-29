@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PinGolf Live Tourney</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;800&family=Inter:wght@400;600;700&display=swap');
@@ -30,10 +29,10 @@
         </div>
       </div>
       <div class="flex items-center space-x-2">
-        <button onclick="toggleModal('playerModal')" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded border border-slate-700 font-semibold transition">
+        <button id="btnOpenPlayer" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded border border-slate-700 font-semibold transition">
           <i class="fa-solid fa-user-circle mr-1"></i> Player
         </button>
-        <button onclick="toggleModal('calculatorModal')" class="bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 text-xs px-2.5 py-1.5 rounded border border-cyan-800 transition" title="Dave Stewart Target Calculator">
+        <button id="btnOpenCalc" class="bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 text-xs px-2.5 py-1.5 rounded border border-cyan-800 transition" title="Dave Stewart Target Calculator">
           <i class="fa-solid fa-calculator"></i>
         </button>
       </div>
@@ -43,13 +42,13 @@
   <!-- Navigation Tabs -->
   <nav class="max-w-4xl mx-auto px-4 mt-3">
     <div class="flex space-x-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800 text-sm">
-      <button id="tabBtnScorecard" onclick="switchTab('scorecard')" class="flex-1 py-2 rounded-lg font-bold transition bg-amber-400 text-slate-950">
+      <button id="tabBtnScorecard" class="flex-1 py-2 rounded-lg font-bold transition bg-amber-400 text-slate-950">
         <i class="fa-solid fa-list-check mr-1.5"></i> Scorecard
       </button>
-      <button id="tabBtnLeaderboard" onclick="switchTab('leaderboard')" class="flex-1 py-2 rounded-lg font-bold transition text-slate-400 hover:text-white">
+      <button id="tabBtnLeaderboard" class="flex-1 py-2 rounded-lg font-bold transition text-slate-400 hover:text-white">
         <i class="fa-solid fa-trophy mr-1.5"></i> Standings
       </button>
-      <button id="tabBtnAudit" onclick="switchTab('audit')" class="flex-1 py-2 rounded-lg font-bold transition text-slate-400 hover:text-white">
+      <button id="tabBtnAudit" class="flex-1 py-2 rounded-lg font-bold transition text-slate-400 hover:text-white">
         <i class="fa-solid fa-camera mr-1.5"></i> Proofs
       </button>
     </div>
@@ -62,11 +61,11 @@
     <section id="viewScorecard" class="space-y-4">
       <div id="noPlayerAlert" class="bg-amber-950/40 border border-amber-800 text-amber-300 p-3 rounded-lg text-sm flex items-center justify-between">
         <span><i class="fa-solid fa-triangle-exclamation mr-2"></i> Select or create your player name to record scores.</span>
-        <button onclick="toggleModal('playerModal')" class="underline font-bold text-xs">Select Now</button>
+        <button id="btnAlertSelectPlayer" class="underline font-bold text-xs">Select Now</button>
       </div>
 
       <div id="holesList" class="space-y-3">
-        <!-- Rendered dynamically -->
+        <!-- Rendered by JavaScript -->
       </div>
     </section>
 
@@ -120,7 +119,7 @@
           <h3 id="modalMachineTitle" class="text-xl font-bold text-white leading-tight">Pinball Machine</h3>
           <p id="modalTargetScore" class="text-xs text-amber-400 font-mono">Target: 0</p>
         </div>
-        <button onclick="toggleModal('scoreModal')" class="text-slate-400 hover:text-white p-2">
+        <button id="btnCloseScoreModal" class="text-slate-400 hover:text-white p-2">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
@@ -138,8 +137,8 @@
       <div>
         <label class="block text-xs uppercase text-slate-400 font-bold mb-1">Proof Photo (Camera / Upload)</label>
         <div class="flex items-center space-x-3">
-          <input type="file" id="inputProofPhoto" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoSelected(event)">
-          <button type="button" onclick="document.getElementById('inputProofPhoto').click()" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 py-2.5 px-3 rounded-lg text-xs font-bold text-slate-200 flex items-center justify-center space-x-2">
+          <input type="file" id="inputProofPhoto" accept="image/*" capture="environment" class="hidden">
+          <button type="button" id="btnSnapPhoto" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 py-2.5 px-3 rounded-lg text-xs font-bold text-slate-200 flex items-center justify-center space-x-2">
             <i class="fa-solid fa-camera text-cyan-400"></i>
             <span id="photoBtnLabel">Snap DMD Screen</span>
           </button>
@@ -149,7 +148,7 @@
         </div>
       </div>
 
-      <button id="saveScoreBtn" onclick="saveActiveHoleScore()" class="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl transition flex items-center justify-center space-x-2">
+      <button id="saveScoreBtn" class="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl transition flex items-center justify-center space-x-2">
         <i class="fa-solid fa-cloud-arrow-up"></i>
         <span>Save & Sync Score</span>
       </button>
@@ -161,14 +160,14 @@
     <div class="bg-[#161b2e] border border-slate-800 rounded-2xl w-full max-w-sm p-5 space-y-4">
       <div class="flex justify-between items-center">
         <h3 class="text-lg font-bold text-amber-400">Player Profile</h3>
-        <button onclick="toggleModal('playerModal')" class="text-slate-400 hover:text-white p-1">
+        <button id="btnClosePlayerModal" class="text-slate-400 hover:text-white p-1">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
       <div>
         <label class="block text-xs uppercase text-slate-400 font-bold mb-1">Select Existing Player</label>
-        <select id="playerDropdown" onchange="selectExistingPlayer(this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+        <select id="playerDropdown" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
           <option value="">-- Choose Name --</option>
         </select>
       </div>
@@ -181,7 +180,7 @@
 
       <div>
         <input type="text" id="newPlayerName" placeholder="Your Name or Initials" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-amber-400 focus:outline-none uppercase">
-        <button onclick="registerNewPlayer()" class="w-full mt-2 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-lg text-sm transition">
+        <button id="btnJoinTourney" class="w-full mt-2 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-lg text-sm transition">
           Join Tournament
         </button>
       </div>
@@ -195,9 +194,131 @@
         <h3 class="text-base font-bold text-cyan-400 flex items-center">
           <i class="fa-solid fa-calculator mr-2"></i> Dave Stewart Target Calc
         </h3>
-        <button onclick="toggleModal('calculatorModal')" class="text-slate-400 hover:text-white p-1">
+        <button id="btnCloseCalcModal" class="text-slate-400 hover:text-white p-1">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
       <p class="text-xs text-slate-400 leading-relaxed">
-        Test 3 representative players for 3 uninterrupted minutes on 5-ball
+        Test 3 representative players for 3 uninterrupted minutes on 5-ball play. Enter their 3-minute marks to derive pace-adjusted target scores.
+      </p>
+
+      <div class="grid grid-cols-3 gap-2">
+        <div>
+          <label class="text-[10px] uppercase text-slate-400">P1 Score</label>
+          <input type="number" id="calcP1" placeholder="10000000" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+        </div>
+        <div>
+          <label class="text-[10px] uppercase text-slate-400">P2 Score</label>
+          <input type="number" id="calcP2" placeholder="14000000" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+        </div>
+        <div>
+          <label class="text-[10px] uppercase text-slate-400">P3 Score</label>
+          <input type="number" id="calcP3" placeholder="12000000" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+        </div>
+      </div>
+
+      <div>
+        <label class="text-[10px] uppercase text-slate-400">Target Pace Adjuster</label>
+        <select id="calcCadence" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+          <option value="standard">Standard (~1 tee-off / 5 min)</option>
+          <option value="4player">4-Player Group every 15 min (-20% cutoff)</option>
+          <option value="2player">2-Player Group every 15 min (+20% cutoff)</option>
+        </select>
+      </div>
+
+      <button id="btnRunCalc" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded text-xs transition">
+        Calculate Recommended Target
+      </button>
+
+      <div id="calcResultBox" class="p-3 bg-slate-900/90 rounded border border-slate-800 text-center hidden">
+        <div class="text-[10px] text-slate-400 uppercase">Suggested Target Score</div>
+        <div id="calcRecommendedScore" class="text-xl font-bold font-mono text-amber-400 tracking-wider">--</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration & Credentials
+    const SB_URL = 'https://xwzfmtytdjpokzlbhtyb.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3emZtdHl0ZGpwb2t6bGJodHliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyODIyNDEsImV4cCI6MjEwODg1ODI0MX0.ThtGbXMvod2csE5Uxa619Kqk9EyGaZiDobYGpHWsDds';
+
+    const HEADERS = {
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json'
+    };
+
+    const DEFAULT_HOLES = [
+      { id: 1, title: 'Godzilla Premium', location: 'Arena 1', target_score: 15000000, par: 3, notes: 'Focus on Mechagodzilla multiball and destruction jackpots.' },
+      { id: 2, title: 'Jurassic Park', location: 'Arena 2', target_score: 25000000, par: 3, notes: 'Capture dinosaurs; start T-Rex multiball early.' },
+      { id: 3, title: 'Medieval Madness', location: 'Arena 3', target_score: 12000000, par: 3, notes: 'Destroy the castle gates; lock balls for Castle Multiball.' },
+      { id: 4, title: 'Attack from Mars', location: 'Arena 4', target_score: 300000000, par: 3, notes: 'Focus center shield knockdowns and Total Annihilation.' },
+      { id: 5, title: 'Iron Maiden', location: 'Arena 5', target_score: 20000000, par: 3, notes: 'Loop orbits to light lock and Trooper Multiball.' },
+      { id: 6, title: 'Deadpool Pro', location: 'Arena 6', target_score: 18000000, par: 3, notes: 'Team up with Colossus and battle Juggernaut.' },
+      { id: 7, title: 'Transformers MTMTE', location: 'Arena 7', target_score: 10000000, par: 3, notes: 'Decepticon battles and Matrix ramp multiball.' },
+      { id: 8, title: 'The Addams Family', location: 'Arena 8', target_score: 40000000, par: 3, notes: 'Bear kicks to tour the mansion and quick multiball.' },
+      { id: 9, title: 'Firepower', location: 'Arena 9', target_score: 250000, par: 3, notes: 'Classic 1980 solid state; light 1-2-3-4-5-6 and lock 3 balls.' }
+    ];
+
+    let allHoles = [...DEFAULT_HOLES];
+    let allPlayers = [];
+    let allScores = [];
+    let currentPlayer = null;
+    let activeModalHole = null;
+    let selectedStrokes = 1;
+    let compressedPhotoBlob = null;
+
+    // Direct REST API Helpers (no external client library dependencies)
+    async function dbGet(path) {
+      const res = await fetch(`${SB_URL}/rest/v1/${path}`, { headers: HEADERS });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }
+
+    async function dbPost(table, payload) {
+      const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: { ...HEADERS, 'Prefer': 'return=representation' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }
+
+    async function dbUpsert(table, payload) {
+      const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }
+
+    // Modal Helper
+    function toggleModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('hidden');
+    }
+
+    // Tab Switcher
+    function switchTab(tab) {
+      ['Scorecard', 'Leaderboard', 'Audit'].forEach(t => {
+        const view = document.getElementById(`view${t}`);
+        const btn = document.getElementById(`tabBtn${t}`);
+        if (!view || !btn) return;
+        if (t.toLowerCase() === tab) {
+          view.classList.remove('hidden');
+          btn.className = 'flex-1 py-2 rounded-lg font-bold transition bg-amber-400 text-slate-950';
+        } else {
+          view.classList.add('hidden');
+          btn.className = 'flex-1 py-2 rounded-lg font-bold transition text-slate-400 hover:text-white';
+        }
+      });
+    }
+
+    function updatePlayerHeader() {
+      const badge = document.getElementById('playerBadge');
+      const alertBox = document.getElementById('noPlayerAlert');
+      if (currentPlayer) {
+        badge.innerText
