@@ -841,4 +841,101 @@
         }
 
         const numVal = document.getElementById('inputActualScore').value;
-        const actualScore = numVal ? parseInt(numVal, 10) : null
+        const actualScore = numVal ? parseInt(numVal, 10) : null;
+
+        const record = {
+          player_id: currentPlayer.id,
+          hole_id: activeModalHole.id,
+          tournament_id: currentTournament ? currentTournament.id : null,
+          strokes: selectedStrokes,
+          actual_score: actualScore,
+          updated_at: new Date().toISOString()
+        };
+        if (photoUrl) record.photo_url = photoUrl;
+
+        await dbUpsert('scores', [record]);
+        toggleModal('scoreModal');
+        await syncData();
+      } catch (err) {
+        alert('Could not save score: ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up mr-2"></i> RECORD SCORE`;
+      }
+    }
+
+    function calculateDaveStewart() {
+      const p1 = parseFloat(document.getElementById('calcP1').value) || 0;
+      const p2 = parseFloat(document.getElementById('calcP2').value) || 0;
+      const p3 = parseFloat(document.getElementById('calcP3').value) || 0;
+      const cadence = document.getElementById('calcCadence').value;
+
+      if (!p1 && !p2 && !p3) return alert('Enter at least one player score.');
+
+      const valid = [p1, p2, p3].filter(v => v > 0);
+      let avg = valid.reduce((a, b) => a + b, 0) / valid.length;
+
+      if (cadence === '4player') avg *= 0.8;
+      if (cadence === '2player') avg *= 1.2;
+
+      const digits = Math.floor(Math.log10(avg));
+      const factor = Math.pow(10, digits - 1);
+      const rounded = Math.round(avg / factor) * factor;
+
+      document.getElementById('calcRecommendedScore').innerText = Number(rounded).toLocaleString();
+      document.getElementById('calcResultBox').classList.remove('hidden');
+    }
+
+    (function initApp() {
+      try {
+        const cached = localStorage.getItem('pingolf_active_player');
+        if (cached) currentPlayer = JSON.parse(cached);
+      } catch (e) {}
+
+      updatePlayerHeader();
+
+      // Modal Triggers
+      document.getElementById('btnOpenPlayer').addEventListener('click', () => toggleModal('playerModal'));
+      document.getElementById('btnAlertSelectPlayer').addEventListener('click', () => toggleModal('playerModal'));
+      document.getElementById('btnClosePlayerModal').addEventListener('click', () => toggleModal('playerModal'));
+
+      document.getElementById('btnTourneyPicker').addEventListener('click', () => {
+        renderTourneyModalList();
+        toggleModal('tourneyModal');
+      });
+      document.getElementById('btnCloseTourneyModal').addEventListener('click', () => toggleModal('tourneyModal'));
+      document.getElementById('btnCreateTourney').addEventListener('click', createNewTournament);
+
+      document.getElementById('btnOpenCalc').addEventListener('click', () => toggleModal('calculatorModal'));
+      document.getElementById('btnCloseCalcModal').addEventListener('click', () => toggleModal('calculatorModal'));
+      document.getElementById('btnRunCalc').addEventListener('click', calculateDaveStewart);
+
+      document.getElementById('btnCloseScoreModal').addEventListener('click', () => toggleModal('scoreModal'));
+      document.getElementById('btnSnapPhoto').addEventListener('click', () => document.getElementById('inputProofPhoto').click());
+      document.getElementById('inputProofPhoto').addEventListener('change', handlePhotoInput);
+      document.getElementById('saveScoreBtn').addEventListener('click', saveActiveScore);
+
+      document.getElementById('tabBtnScorecard').addEventListener('click', () => switchTab('scorecard'));
+      document.getElementById('tabBtnLeaderboard').addEventListener('click', () => switchTab('leaderboard'));
+      document.getElementById('tabBtnAudit').addEventListener('click', () => switchTab('audit'));
+
+      document.getElementById('btnJoinTourney').addEventListener('click', registerPlayer);
+      document.getElementById('playerDropdown').addEventListener('change', (e) => {
+        const id = e.target.value;
+        const p = allPlayers.find(item => item.id === id);
+        if (p) {
+          currentPlayer = p;
+          localStorage.setItem('pingolf_active_player', JSON.stringify(currentPlayer));
+          updatePlayerHeader();
+          toggleModal('playerModal');
+          renderScorecard();
+          renderLeaderboard();
+        }
+      });
+
+      syncData();
+      setInterval(syncData, 5000);
+    })();
+  </script>
+</body>
+</html>
