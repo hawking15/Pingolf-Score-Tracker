@@ -15,7 +15,7 @@
 </head>
 <body class="min-h-screen pb-24">
 
-  <!-- Top Navigation Header -->
+  <!-- Header -->
   <header class="sticky top-0 z-30 bg-[#121626]/95 backdrop-blur border-b border-slate-800 px-4 py-3">
     <div class="max-w-4xl mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-3">
@@ -39,7 +39,7 @@
     </div>
   </header>
 
-  <!-- Navigation Tabs -->
+  <!-- Navigation -->
   <nav class="max-w-4xl mx-auto px-4 mt-3">
     <div class="flex space-x-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800 text-sm">
       <button id="tabBtnScorecard" class="flex-1 py-2 rounded-lg font-bold transition bg-amber-400 text-slate-950">
@@ -54,9 +54,8 @@
     </div>
   </nav>
 
-  <!-- Main Content Area -->
+  <!-- Content -->
   <main class="max-w-4xl mx-auto px-4 mt-4">
-
     <!-- TAB 1: SCORECARD -->
     <section id="viewScorecard" class="space-y-4">
       <div id="noPlayerAlert" class="bg-amber-950/40 border border-amber-800 text-amber-300 p-3 rounded-lg text-sm flex items-center justify-between">
@@ -65,11 +64,11 @@
       </div>
 
       <div id="holesList" class="space-y-3">
-        <!-- Rendered by JavaScript -->
+        <!-- Injected immediately on load -->
       </div>
     </section>
 
-    <!-- TAB 2: LIVE LEADERBOARD -->
+    <!-- TAB 2: STANDINGS -->
     <section id="viewLeaderboard" class="hidden space-y-4">
       <div class="bg-panel border border-slate-800 rounded-xl p-4 overflow-hidden">
         <div class="flex justify-between items-center mb-3">
@@ -97,7 +96,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: PROOF AUDIT -->
+    <!-- TAB 3: PROOFS -->
     <section id="viewAudit" class="hidden space-y-4">
       <div class="flex justify-between items-center">
         <h2 class="text-lg font-bold text-amber-400">Display Proof Gallery</h2>
@@ -107,10 +106,9 @@
         <div class="col-span-full text-center py-10 text-slate-500">No score proof images uploaded yet.</div>
       </div>
     </section>
-
   </main>
 
-  <!-- MODAL: Score Entry & Proof Upload -->
+  <!-- MODAL: Score Entry -->
   <div id="scoreModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
     <div class="bg-[#161b2e] border border-cyan-800 rounded-t-2xl sm:rounded-2xl w-full max-w-lg p-5 space-y-4">
       <div class="flex justify-between items-start">
@@ -155,7 +153,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Player Selector / Registration -->
+  <!-- MODAL: Player Selector -->
   <div id="playerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#161b2e] border border-slate-800 rounded-2xl w-full max-w-sm p-5 space-y-4">
       <div class="flex justify-between items-center">
@@ -187,7 +185,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Dave Stewart Target Score Calculator -->
+  <!-- MODAL: Dave Stewart Target Calculator -->
   <div id="calculatorModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-[#161b2e] border border-cyan-800 rounded-2xl w-full max-w-md p-5 space-y-3">
       <div class="flex justify-between items-center">
@@ -238,13 +236,12 @@
   </div>
 
   <script>
-    // Configuration & Credentials
     const SB_URL = 'https://xwzfmtytdjpokzlbhtyb.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3emZtdHl0ZGpwb2t6bGJodHliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyODIyNDEsImV4cCI6MjEwODg1ODI0MX0.ThtGbXMvod2csE5Uxa619Kqk9EyGaZiDobYGpHWsDds';
 
     const HEADERS = {
       'apikey': SB_KEY,
-      'Authorization': `Bearer ${SB_KEY}`,
+      'Authorization': 'Bearer ' + SB_KEY,
       'Content-Type': 'application/json'
     };
 
@@ -268,15 +265,16 @@
     let selectedStrokes = 1;
     let compressedPhotoBlob = null;
 
-    // Direct REST API Helpers (no external client library dependencies)
+    // Direct REST API calls with URL apikey fallback
     async function dbGet(path) {
-      const res = await fetch(`${SB_URL}/rest/v1/${path}`, { headers: HEADERS });
+      const sep = path.includes('?') ? '&' : '?';
+      const res = await fetch(`${SB_URL}/rest/v1/${path}${sep}apikey=${SB_KEY}`, { headers: HEADERS });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     }
 
     async function dbPost(table, payload) {
-      const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
+      const res = await fetch(`${SB_URL}/rest/v1/${table}?apikey=${SB_KEY}`, {
         method: 'POST',
         headers: { ...HEADERS, 'Prefer': 'return=representation' },
         body: JSON.stringify(payload)
@@ -286,7 +284,7 @@
     }
 
     async function dbUpsert(table, payload) {
-      const res = await fetch(`${SB_URL}/rest/v1/${table}`, {
+      const res = await fetch(`${SB_URL}/rest/v1/${table}?apikey=${SB_KEY}`, {
         method: 'POST',
         headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
         body: JSON.stringify(payload)
@@ -295,13 +293,11 @@
       return res.json();
     }
 
-    // Modal Helper
     function toggleModal(id) {
       const el = document.getElementById(id);
       if (el) el.classList.toggle('hidden');
     }
 
-    // Tab Switcher
     function switchTab(tab) {
       ['Scorecard', 'Leaderboard', 'Audit'].forEach(t => {
         const view = document.getElementById(`view${t}`);
@@ -321,4 +317,401 @@
       const badge = document.getElementById('playerBadge');
       const alertBox = document.getElementById('noPlayerAlert');
       if (currentPlayer) {
-        badge.innerText
+        badge.innerText = `Player: ${currentPlayer.name}`;
+        badge.classList.remove('text-slate-400');
+        badge.classList.add('text-amber-400', 'font-bold');
+        if (alertBox) alertBox.classList.add('hidden');
+      } else {
+        badge.innerText = 'No Player Selected';
+        badge.classList.remove('text-amber-400', 'font-bold');
+        badge.classList.add('text-slate-400');
+        if (alertBox) alertBox.classList.remove('hidden');
+      }
+    }
+
+    function renderScorecard() {
+      const container = document.getElementById('holesList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const playerScores = currentPlayer ? allScores.filter(s => s.player_id === currentPlayer.id) : [];
+
+      allHoles.forEach(hole => {
+        const recorded = playerScores.find(s => s.hole_id === hole.id);
+        const card = document.createElement('div');
+        card.className = `p-4 rounded-xl border transition ${recorded ? 'bg-slate-900/90 border-cyan-700/60' : 'bg-panel border-slate-800'}`;
+
+        let statusBadge = `<span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">Unplayed</span>`;
+        if (recorded) {
+          const diff = recorded.strokes - (hole.par || 3);
+          const diffText = diff === 0 ? 'Even' : (diff > 0 ? `+${diff}` : `${diff}`);
+          statusBadge = `<span class="text-xs px-2.5 py-0.5 rounded font-bold font-mono ${diff <= 0 ? 'bg-cyan-950 text-cyan-400 border border-cyan-800' : 'bg-amber-950 text-amber-400 border border-amber-800'}">${recorded.strokes} Strokes (${diffText})</span>`;
+        }
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-mono font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded">HOLE ${hole.id}</span>
+                <span class="text-xs text-slate-400">${hole.location || ''}</span>
+              </div>
+              <h3 class="text-base font-bold text-white mt-1">${hole.title}</h3>
+              <p class="text-xs text-slate-400 mt-0.5">${hole.notes || ''}</p>
+            </div>
+            <div class="text-right">
+              ${statusBadge}
+            </div>
+          </div>
+
+          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Target: <strong class="font-mono text-cyan-400 text-sm">${Number(hole.target_score).toLocaleString()}</strong></span>
+            <button class="hole-play-btn px-3 py-1.5 rounded-lg font-bold transition ${recorded ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700' : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950'}" data-hole="${hole.id}">
+              <i class="fa-solid ${recorded ? 'fa-pen-to-square' : 'fa-play'} mr-1"></i> ${recorded ? 'Edit Score' : 'Play Hole'}
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      container.querySelectorAll('.hole-play-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const hid = parseInt(e.currentTarget.getAttribute('data-hole'), 10);
+          openScoreModal(hid);
+        });
+      });
+    }
+
+    function renderStrokeButtons() {
+      const container = document.getElementById('strokeButtons');
+      container.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `py-3 rounded-xl font-bold font-mono text-lg transition ${selectedStrokes === i ? 'bg-cyan-500 text-slate-950 ring-2 ring-cyan-300' : 'bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-700'}`;
+        btn.innerText = i === 5 ? '5 (D)' : i;
+        btn.addEventListener('click', () => {
+          selectedStrokes = i;
+          renderStrokeButtons();
+        });
+        container.appendChild(btn);
+      }
+    }
+
+    function openScoreModal(holeId) {
+      if (!currentPlayer) {
+        toggleModal('playerModal');
+        return;
+      }
+
+      activeModalHole = allHoles.find(h => h.id === holeId);
+      if (!activeModalHole) return;
+
+      document.getElementById('modalHoleBadge').innerText = `HOLE ${activeModalHole.id} • PAR ${activeModalHole.par || 3}`;
+      document.getElementById('modalMachineTitle').innerText = activeModalHole.title;
+      document.getElementById('modalTargetScore').innerText = `Target: ${Number(activeModalHole.target_score).toLocaleString()} pts`;
+
+      const existingScore = allScores.find(s => s.player_id === currentPlayer.id && s.hole_id === holeId);
+      selectedStrokes = existingScore ? existingScore.strokes : 1;
+      document.getElementById('inputActualScore').value = existingScore && existingScore.actual_score ? existingScore.actual_score : '';
+
+      compressedPhotoBlob = null;
+      document.getElementById('photoPreviewContainer').classList.add('hidden');
+      document.getElementById('photoBtnLabel').innerText = existingScore && existingScore.photo_url ? 'Replace Proof' : 'Snap DMD Screen';
+
+      renderStrokeButtons();
+      toggleModal('scoreModal');
+    }
+
+    function renderLeaderboard() {
+      const tbody = document.getElementById('leaderboardBody');
+      if (!tbody) return;
+
+      if (allPlayers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">No players registered yet.</td></tr>`;
+        return;
+      }
+
+      const stats = allPlayers.map(p => {
+        const pScores = allScores.filter(s => s.player_id === p.id);
+        const holesPlayed = pScores.length;
+        const totalStrokes = pScores.reduce((acc, s) => acc + s.strokes, 0);
+
+        let playedPar = 0;
+        pScores.forEach(s => {
+          const h = allHoles.find(hole => hole.id === s.hole_id);
+          playedPar += (h ? (h.par || 3) : 3);
+        });
+
+        const diffToPar = totalStrokes - playedPar;
+        const aces = pScores.filter(s => s.strokes === 1).length;
+        const twos = pScores.filter(s => s.strokes === 2).length;
+
+        return { id: p.id, name: p.name, holesPlayed, totalStrokes, diffToPar, aces, twos };
+      });
+
+      stats.sort((a, b) => {
+        if (a.holesPlayed === 0 && b.holesPlayed === 0) return 0;
+        if (a.holesPlayed === 0) return 1;
+        if (b.holesPlayed === 0) return -1;
+        if (a.totalStrokes !== b.totalStrokes) return a.totalStrokes - b.totalStrokes;
+        if (a.aces !== b.aces) return b.aces - a.aces;
+        return b.twos - a.twos;
+      });
+
+      tbody.innerHTML = '';
+      stats.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = row.holesPlayed > 0 ? 'hover:bg-slate-800/40' : 'opacity-40';
+
+        const diffFormatted = row.holesPlayed === 0 ? '--' : (row.diffToPar === 0 ? 'E' : (row.diffToPar > 0 ? `+${row.diffToPar}` : `${row.diffToPar}`));
+        const diffColor = row.diffToPar <= 0 ? 'text-cyan-400' : 'text-amber-400';
+
+        tr.innerHTML = `
+          <td class="py-3 px-3 font-bold">${idx + 1}</td>
+          <td class="py-3 px-3 font-sans font-semibold text-white flex items-center space-x-2">
+            <span>${row.name}</span>
+            ${row.aces > 0 ? `<span class="text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-800 px-1.5 py-0.2 rounded font-mono">${row.aces} Ace${row.aces > 1 ? 's' : ''}</span>` : ''}
+          </td>
+          <td class="py-3 px-3 text-center">${row.holesPlayed}/${allHoles.length}</td>
+          <td class="py-3 px-3 text-center font-bold ${diffColor}">${diffFormatted}</td>
+          <td class="py-3 px-3 text-right font-bold text-base text-white">${row.totalStrokes}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderAuditGallery() {
+      const grid = document.getElementById('auditGrid');
+      if (!grid) return;
+      const proofScores = allScores.filter(s => s.photo_url);
+
+      if (proofScores.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500">No score proof images uploaded yet.</div>`;
+        return;
+      }
+
+      grid.innerHTML = '';
+      proofScores.forEach(s => {
+        const hole = allHoles.find(h => h.id === s.hole_id);
+        const playerObj = allPlayers.find(p => p.id === s.player_id);
+        const playerName = playerObj ? playerObj.name : 'Player';
+
+        const card = document.createElement('div');
+        card.className = 'bg-panel border border-slate-800 rounded-xl overflow-hidden';
+        card.innerHTML = `
+          <a href="${s.photo_url}" target="_blank" rel="noopener noreferrer">
+            <img src="${s.photo_url}" class="w-full h-44 object-cover hover:scale-105 transition duration-300">
+          </a>
+          <div class="p-3">
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-bold text-amber-400">${playerName}</span>
+              <span class="font-mono text-cyan-400">${s.strokes} Strokes</span>
+            </div>
+            <div class="text-xs text-slate-300 mt-1">${hole ? hole.title : `Hole ${s.hole_id}`}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function handlePhotoInput(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 900;
+          let w = img.width;
+          let h = img.height;
+          if (w > h && w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+          canvas.width = w;
+          canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          canvas.toBlob((blob) => {
+            compressedPhotoBlob = blob;
+            document.getElementById('photoPreviewImg').src = URL.createObjectURL(blob);
+            document.getElementById('photoPreviewContainer').classList.remove('hidden');
+            document.getElementById('photoBtnLabel').innerText = 'Proof Attached';
+          }, 'image/jpeg', 0.8);
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function syncData() {
+      try {
+        const playersData = await dbGet('players?select=*&order=name.asc');
+        allPlayers = playersData || [];
+        const dropdown = document.getElementById('playerDropdown');
+        dropdown.innerHTML = '<option value="">-- Choose Name --</option>';
+        allPlayers.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id;
+          opt.innerText = p.name;
+          if (currentPlayer && currentPlayer.id === p.id) opt.selected = true;
+          dropdown.appendChild(opt);
+        });
+
+        try {
+          const holesData = await dbGet('holes?select=*&order=id.asc');
+          if (holesData && holesData.length > 0) allHoles = holesData;
+        } catch (e) {}
+
+        const scoresData = await dbGet('scores?select=*');
+        allScores = scoresData || [];
+
+        renderScorecard();
+        renderLeaderboard();
+        renderAuditGallery();
+      } catch (err) {
+        console.warn('Sync notice:', err.message);
+      }
+    }
+
+    async function registerPlayer() {
+      const input = document.getElementById('newPlayerName');
+      const name = input.value.trim().toUpperCase();
+      if (!name) return alert('Please enter a name.');
+
+      try {
+        const res = await dbPost('players', [{ name }]);
+        currentPlayer = res[0];
+      } catch (e) {
+        currentPlayer = { id: 'p_' + Date.now(), name: name };
+      }
+
+      localStorage.setItem('pingolf_active_player', JSON.stringify(currentPlayer));
+      updatePlayerHeader();
+      input.value = '';
+      toggleModal('playerModal');
+      await syncData();
+    }
+
+    async function saveActiveScore() {
+      if (!currentPlayer || !activeModalHole) return;
+
+      const saveBtn = document.getElementById('saveScoreBtn');
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Saving...`;
+
+      let photoUrl = null;
+
+      try {
+        if (compressedPhotoBlob) {
+          const filePath = `${currentPlayer.id}_h${activeModalHole.id}_${Date.now()}.jpg`;
+          const uploadRes = await fetch(`${SB_URL}/storage/v1/object/score-proofs/${filePath}?apikey=${SB_KEY}`, {
+            method: 'POST',
+            headers: {
+              'apikey': SB_KEY,
+              'Authorization': 'Bearer ' + SB_KEY,
+              'Content-Type': 'image/jpeg'
+            },
+            body: compressedPhotoBlob
+          });
+          if (uploadRes.ok) {
+            photoUrl = `${SB_URL}/storage/v1/object/public/score-proofs/${filePath}`;
+          }
+        }
+
+        const numVal = document.getElementById('inputActualScore').value;
+        const actualScore = numVal ? parseInt(numVal, 10) : null;
+
+        const record = {
+          player_id: currentPlayer.id,
+          hole_id: activeModalHole.id,
+          strokes: selectedStrokes,
+          actual_score: actualScore,
+          updated_at: new Date().toISOString()
+        };
+        if (photoUrl) record.photo_url = photoUrl;
+
+        await dbUpsert('scores', [record]);
+        toggleModal('scoreModal');
+        await syncData();
+      } catch (err) {
+        alert('Could not save score: ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up mr-2"></i> Save & Sync Score`;
+      }
+    }
+
+    function calculateDaveStewart() {
+      const p1 = parseFloat(document.getElementById('calcP1').value) || 0;
+      const p2 = parseFloat(document.getElementById('calcP2').value) || 0;
+      const p3 = parseFloat(document.getElementById('calcP3').value) || 0;
+      const cadence = document.getElementById('calcCadence').value;
+
+      if (!p1 && !p2 && !p3) return alert('Enter at least one player score.');
+
+      const valid = [p1, p2, p3].filter(v => v > 0);
+      let avg = valid.reduce((a, b) => a + b, 0) / valid.length;
+
+      if (cadence === '4player') avg *= 0.8;
+      if (cadence === '2player') avg *= 1.2;
+
+      const digits = Math.floor(Math.log10(avg));
+      const factor = Math.pow(10, digits - 1);
+      const rounded = Math.round(avg / factor) * factor;
+
+      document.getElementById('calcRecommendedScore').innerText = Number(rounded).toLocaleString();
+      document.getElementById('calcResultBox').classList.remove('hidden');
+    }
+
+    // Direct event binding execution
+    (function initApp() {
+      try {
+        const cached = localStorage.getItem('pingolf_active_player');
+        if (cached) currentPlayer = JSON.parse(cached);
+      } catch (e) {}
+
+      updatePlayerHeader();
+      renderScorecard();
+
+      document.getElementById('btnOpenPlayer').addEventListener('click', () => toggleModal('playerModal'));
+      document.getElementById('btnAlertSelectPlayer').addEventListener('click', () => toggleModal('playerModal'));
+      document.getElementById('btnClosePlayerModal').addEventListener('click', () => toggleModal('playerModal'));
+
+      document.getElementById('btnOpenCalc').addEventListener('click', () => toggleModal('calculatorModal'));
+      document.getElementById('btnCloseCalcModal').addEventListener('click', () => toggleModal('calculatorModal'));
+      document.getElementById('btnRunCalc').addEventListener('click', calculateDaveStewart);
+
+      document.getElementById('btnCloseScoreModal').addEventListener('click', () => toggleModal('scoreModal'));
+      document.getElementById('btnSnapPhoto').addEventListener('click', () => document.getElementById('inputProofPhoto').click());
+      document.getElementById('inputProofPhoto').addEventListener('change', handlePhotoInput);
+      document.getElementById('saveScoreBtn').addEventListener('click', saveActiveScore);
+
+      document.getElementById('tabBtnScorecard').addEventListener('click', () => switchTab('scorecard'));
+      document.getElementById('tabBtnLeaderboard').addEventListener('click', () => switchTab('leaderboard'));
+      document.getElementById('tabBtnAudit').addEventListener('click', () => switchTab('audit'));
+
+      document.getElementById('btnJoinTourney').addEventListener('click', registerPlayer);
+      document.getElementById('playerDropdown').addEventListener('change', (e) => {
+        const id = e.target.value;
+        const p = allPlayers.find(item => item.id === id);
+        if (p) {
+          currentPlayer = p;
+          localStorage.setItem('pingolf_active_player', JSON.stringify(currentPlayer));
+          updatePlayerHeader();
+          toggleModal('playerModal');
+          renderScorecard();
+          renderLeaderboard();
+        }
+      });
+
+      syncData();
+      setInterval(syncData, 5000);
+    })();
+  </script>
+</body>
+</html>
