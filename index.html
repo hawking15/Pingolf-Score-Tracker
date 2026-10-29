@@ -3,92 +3,152 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>PinGolf Live Tourney</title>
+  <title>PinGolf Arcade Pro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;1,700&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;800&family=Inter:wght@400;600;700&display=swap');
-    body { font-family: 'Inter', sans-serif; background-color: #0d0f17; color: #f1f5f9; }
-    h1, h2, h3, .brand-font { font-family: 'Chakra Petch', sans-serif; text-transform: uppercase; }
-    .bg-panel { background: rgba(22, 27, 46, 0.9); }
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: radial-gradient(circle at 50% 10%, #171b30 0%, #080a10 75%);
+      color: #e2e8f0;
+      letter-spacing: 0.03em;
+    }
+    .font-arcade { font-family: 'Orbitron', monospace; }
+    .font-header { font-family: 'Chakra Petch', sans-serif; }
+    
+    /* Neon Glow Effects */
+    .glow-cyan { text-shadow: 0 0 10px rgba(6, 182, 212, 0.7), 0 0 20px rgba(6, 182, 212, 0.4); }
+    .glow-amber { text-shadow: 0 0 10px rgba(245, 158, 11, 0.7), 0 0 20px rgba(245, 158, 11, 0.4); }
+    .glow-magenta { text-shadow: 0 0 10px rgba(236, 72, 153, 0.7), 0 0 20px rgba(236, 72, 153, 0.4); }
+    
+    .panel-arcade {
+      background: linear-gradient(135deg, rgba(22, 27, 46, 0.85) 0%, rgba(13, 17, 30, 0.95) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+    }
+    .panel-active {
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.15), inset 0 0 15px rgba(6, 182, 212, 0.05);
+    }
+    
+    /* Subtle scanline overlay */
+    .scanlines {
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      pointer-events: none;
+    }
   </style>
 </head>
-<body class="min-h-screen pb-24">
+<body class="min-h-screen pb-28 relative">
+  <div class="fixed inset-0 scanlines z-50 pointer-events-none opacity-40"></div>
 
   <!-- Header -->
-  <header class="sticky top-0 z-30 bg-[#121626]/95 backdrop-blur border-b border-slate-800 px-4 py-3">
+  <header class="sticky top-0 z-40 bg-[#0d101d]/95 backdrop-blur-md border-b border-slate-800/80 px-4 py-3">
     <div class="max-w-4xl mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <i class="fa-solid fa-golf-ball-tee text-amber-400 text-2xl"></i>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-300 flex items-center justify-center shadow-lg shadow-amber-500/20 border border-amber-300/40">
+          <i class="fa-solid fa-bolt text-slate-950 text-xl"></i>
+        </div>
         <div>
-          <h1 class="text-xl font-bold tracking-wider text-amber-400 leading-tight">PinGolf Live</h1>
-          <div class="flex items-center space-x-2 text-xs text-slate-400">
-            <span id="connectionDot" class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span id="playerBadge">No Player Selected</span>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl font-arcade font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-200 to-yellow-400 leading-none">
+              PINGOLF<span class="text-cyan-400">.LIVE</span>
+            </h1>
+            <span class="text-[10px] bg-cyan-950/80 text-cyan-400 font-mono font-bold px-1.5 py-0.5 rounded border border-cyan-800/60 uppercase">PRO</span>
+          </div>
+          <div class="flex items-center space-x-2 text-xs font-semibold mt-1">
+            <button id="btnTourneyPicker" class="text-slate-300 hover:text-amber-300 flex items-center space-x-1.5 bg-slate-900/80 px-2 py-0.5 rounded border border-slate-700/60 transition">
+              <i class="fa-solid fa-location-dot text-amber-400 text-[10px]"></i>
+              <span id="labelCurrentTourney" class="truncate max-w-[140px] sm:max-w-[200px]">Loading...</span>
+              <i class="fa-solid fa-chevron-down text-[9px] text-slate-500"></i>
+            </button>
+            <span id="playerBadge" class="text-slate-400 truncate max-w-[110px] sm:max-w-[150px]">No Player</span>
           </div>
         </div>
       </div>
+      
       <div class="flex items-center space-x-2">
-        <button id="btnOpenPlayer" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded border border-slate-700 font-semibold transition">
-          <i class="fa-solid fa-user-circle mr-1"></i> Player
+        <button id="btnOpenPlayer" class="bg-slate-800/90 hover:bg-slate-700 text-xs px-3 py-2 rounded-xl border border-slate-700 font-bold transition flex items-center space-x-1.5 shadow-md">
+          <i class="fa-solid fa-id-badge text-cyan-400"></i>
+          <span class="hidden sm:inline">Player</span>
         </button>
-        <button id="btnOpenCalc" class="bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 text-xs px-2.5 py-1.5 rounded border border-cyan-800 transition" title="Dave Stewart Target Calculator">
+        <button id="btnOpenCalc" class="bg-slate-800/90 hover:bg-slate-700 text-xs px-2.5 py-2 rounded-xl border border-slate-700 text-amber-400 transition shadow-md" title="Dave Stewart Target Calc">
           <i class="fa-solid fa-calculator"></i>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Navigation -->
+  <!-- Navigation Switcher -->
   <nav class="max-w-4xl mx-auto px-4 mt-3">
-    <div class="flex space-x-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800 text-sm">
-      <button id="tabBtnScorecard" class="flex-1 py-2 rounded-lg font-bold transition bg-amber-400 text-slate-950">
-        <i class="fa-solid fa-list-check mr-1.5"></i> Scorecard
+    <div class="grid grid-cols-3 gap-1 bg-[#101424] p-1.5 rounded-2xl border border-slate-800 text-sm font-header font-bold shadow-inner">
+      <button id="tabBtnScorecard" class="py-2.5 rounded-xl transition flex items-center justify-center space-x-2 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 shadow-md shadow-amber-500/20">
+        <i class="fa-solid fa-clipboard-list"></i>
+        <span>HOLES</span>
       </button>
-      <button id="tabBtnLeaderboard" class="flex-1 py-2 rounded-lg font-bold transition text-slate-400 hover:text-white">
-        <i class="fa-solid fa-trophy mr-1.5"></i> Standings
+      <button id="tabBtnLeaderboard" class="py-2.5 rounded-xl transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-ranking-star"></i>
+        <span>STANDINGS</span>
       </button>
-      <button id="tabBtnAudit" class="flex-1 py-2 rounded-lg font-bold transition text-slate-400 hover:text-white">
-        <i class="fa-solid fa-camera mr-1.5"></i> Proofs
+      <button id="tabBtnAudit" class="py-2.5 rounded-xl transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-camera-retro"></i>
+        <span>PROOFS</span>
       </button>
     </div>
   </nav>
 
-  <!-- Content -->
+  <!-- Main Views -->
   <main class="max-w-4xl mx-auto px-4 mt-4">
+
     <!-- TAB 1: SCORECARD -->
     <section id="viewScorecard" class="space-y-4">
-      <div id="noPlayerAlert" class="bg-amber-950/40 border border-amber-800 text-amber-300 p-3 rounded-lg text-sm flex items-center justify-between">
-        <span><i class="fa-solid fa-triangle-exclamation mr-2"></i> Select or create your player name to record scores.</span>
-        <button id="btnAlertSelectPlayer" class="underline font-bold text-xs">Select Now</button>
+      <div id="noPlayerAlert" class="bg-amber-950/30 border border-amber-800/60 p-3.5 rounded-2xl text-xs sm:text-sm flex items-center justify-between shadow-lg">
+        <span class="text-amber-300 flex items-center space-x-2">
+          <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+          <span>Select or register your player name to record strokes.</span>
+        </span>
+        <button id="btnAlertSelectPlayer" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-xl font-bold uppercase tracking-wider text-xs transition">
+          Join In
+        </button>
       </div>
 
       <div id="holesList" class="space-y-3">
-        <!-- Injected immediately on load -->
+        <!-- Injected via JavaScript -->
       </div>
     </section>
 
     <!-- TAB 2: STANDINGS -->
     <section id="viewLeaderboard" class="hidden space-y-4">
-      <div class="bg-panel border border-slate-800 rounded-xl p-4 overflow-hidden">
-        <div class="flex justify-between items-center mb-3">
-          <h2 class="text-lg font-bold text-cyan-400">Live Tournament Standings</h2>
-          <span class="text-xs bg-slate-800 px-2.5 py-1 rounded-full text-slate-400">Tiebreaker: Aces &gt; 2s</span>
+      <div class="panel-arcade rounded-2xl p-4 sm:p-5 overflow-hidden border border-slate-800">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <h2 class="text-lg font-arcade font-bold text-cyan-400 glow-cyan">TOURNAMENT STANDINGS</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Fewest total strokes wins • Auto tiebreaker active</p>
+          </div>
+          <span class="text-[11px] font-mono bg-slate-900 border border-slate-700/80 px-2.5 py-1 rounded-full text-slate-300">
+            Aces &gt; 2s
+          </span>
         </div>
+        
         <div class="overflow-x-auto">
           <table class="w-full text-left text-sm">
-            <thead class="text-xs uppercase bg-slate-900/80 text-slate-400 border-b border-slate-800">
+            <thead class="text-xs font-arcade uppercase text-slate-400 border-b border-slate-800 bg-slate-900/60">
               <tr>
-                <th class="py-2 px-3">Rank</th>
-                <th class="py-2 px-3">Player</th>
-                <th class="py-2 px-3 text-center">Thru</th>
-                <th class="py-2 px-3 text-center">To Par</th>
-                <th class="py-2 px-3 text-right">Strokes</th>
+                <th class="py-2.5 px-3">Pos</th>
+                <th class="py-2.5 px-3">Player</th>
+                <th class="py-2.5 px-3 text-center">Thru</th>
+                <th class="py-2.5 px-3 text-center">To Par</th>
+                <th class="py-2.5 px-3 text-right">Strokes</th>
               </tr>
             </thead>
             <tbody id="leaderboardBody" class="divide-y divide-slate-800/60 font-mono">
               <tr>
-                <td colspan="5" class="text-center py-6 text-slate-500">No scores recorded yet.</td>
+                <td colspan="5" class="text-center py-8 text-slate-500 font-sans">No scores recorded yet.</td>
               </tr>
             </tbody>
           </table>
@@ -98,139 +158,184 @@
 
     <!-- TAB 3: PROOFS -->
     <section id="viewAudit" class="hidden space-y-4">
-      <div class="flex justify-between items-center">
-        <h2 class="text-lg font-bold text-amber-400">Display Proof Gallery</h2>
-        <span class="text-xs text-slate-400">All submitted DMD/LCD captures</span>
+      <div class="flex justify-between items-center px-1">
+        <div>
+          <h2 class="text-lg font-arcade font-bold text-amber-400 glow-amber">VERIFIED PROOFS</h2>
+          <p class="text-xs text-slate-400">Player submitted DMD & LCD backbox snapshots</p>
+        </div>
       </div>
       <div id="auditGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-        <div class="col-span-full text-center py-10 text-slate-500">No score proof images uploaded yet.</div>
+        <!-- Photo Cards -->
       </div>
     </section>
+
   </main>
 
-  <!-- MODAL: Score Entry -->
-  <div id="scoreModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
-    <div class="bg-[#161b2e] border border-cyan-800 rounded-t-2xl sm:rounded-2xl w-full max-w-lg p-5 space-y-4">
+  <!-- MODAL: Score Entry & Photo Upload -->
+  <div id="scoreModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="panel-arcade border border-cyan-800/80 rounded-t-3xl sm:rounded-3xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-start">
         <div>
-          <span id="modalHoleBadge" class="text-xs font-bold text-cyan-400 tracking-wider">HOLE 1</span>
-          <h3 id="modalMachineTitle" class="text-xl font-bold text-white leading-tight">Pinball Machine</h3>
-          <p id="modalTargetScore" class="text-xs text-amber-400 font-mono">Target: 0</p>
-        </div>
-        <button id="btnCloseScoreModal" class="text-slate-400 hover:text-white p-2">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-      </div>
-
-      <div>
-        <label class="block text-xs uppercase text-slate-400 font-bold mb-2">Strokes to reach target (Balls)</label>
-        <div id="strokeButtons" class="grid grid-cols-5 gap-2"></div>
-      </div>
-
-      <div>
-        <label class="block text-xs uppercase text-slate-400 font-bold mb-1">Actual Numeric Score (Optional)</label>
-        <input type="number" id="inputActualScore" placeholder="e.g. 18450200" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-cyan-500 focus:outline-none">
-      </div>
-
-      <div>
-        <label class="block text-xs uppercase text-slate-400 font-bold mb-1">Proof Photo (Camera / Upload)</label>
-        <div class="flex items-center space-x-3">
-          <input type="file" id="inputProofPhoto" accept="image/*" capture="environment" class="hidden">
-          <button type="button" id="btnSnapPhoto" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 py-2.5 px-3 rounded-lg text-xs font-bold text-slate-200 flex items-center justify-center space-x-2">
-            <i class="fa-solid fa-camera text-cyan-400"></i>
-            <span id="photoBtnLabel">Snap DMD Screen</span>
-          </button>
-          <div id="photoPreviewContainer" class="hidden w-12 h-12 rounded border border-cyan-500 overflow-hidden relative">
-            <img id="photoPreviewImg" class="w-full h-full object-cover">
+          <div class="flex items-center space-x-2">
+            <span id="modalHoleBadge" class="text-[11px] font-arcade font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800">HOLE 1</span>
+            <span id="modalParBadge" class="text-[11px] font-mono text-slate-400">PAR 3</span>
           </div>
+          <h3 id="modalMachineTitle" class="text-2xl font-header font-bold text-white leading-tight mt-1">Machine Title</h3>
+          <p id="modalTargetScore" class="text-xs font-arcade text-amber-400 glow-amber tracking-wider mt-0.5">TARGET: 0</p>
         </div>
-      </div>
-
-      <button id="saveScoreBtn" class="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl transition flex items-center justify-center space-x-2">
-        <i class="fa-solid fa-cloud-arrow-up"></i>
-        <span>Save & Sync Score</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- MODAL: Player Selector -->
-  <div id="playerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-[#161b2e] border border-slate-800 rounded-2xl w-full max-w-sm p-5 space-y-4">
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-bold text-amber-400">Player Profile</h3>
-        <button id="btnClosePlayerModal" class="text-slate-400 hover:text-white p-1">
+        <button id="btnCloseScoreModal" class="w-8 h-8 rounded-full bg-slate-800/80 text-slate-400 hover:text-white flex items-center justify-center transition">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
       <div>
-        <label class="block text-xs uppercase text-slate-400 font-bold mb-1">Select Existing Player</label>
-        <select id="playerDropdown" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white">
+        <label class="block text-xs font-header uppercase text-slate-400 font-bold mb-2">Strokes Taken (Balls Played)</label>
+        <div id="strokeButtons" class="grid grid-cols-5 gap-2"></div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-header uppercase text-slate-400 font-bold mb-1.5">Score Achieved (Optional)</label>
+        <input type="number" id="inputActualScore" placeholder="e.g. 18450200" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl p-3 text-sm font-mono text-white focus:border-cyan-400 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-header uppercase text-slate-400 font-bold mb-1.5">Display Proof Capture</label>
+        <div class="flex items-center space-x-3">
+          <input type="file" id="inputProofPhoto" accept="image/*" capture="environment" class="hidden">
+          <button type="button" id="btnSnapPhoto" class="flex-1 bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700 py-3 px-4 rounded-xl text-xs font-header font-bold text-slate-200 flex items-center justify-center space-x-2 transition">
+            <i class="fa-solid fa-camera text-cyan-400 text-sm"></i>
+            <span id="photoBtnLabel">SNAP DISPLAY PROOF</span>
+          </button>
+          <div id="photoPreviewContainer" class="hidden w-12 h-12 rounded-xl border border-cyan-400 overflow-hidden relative shadow-md">
+            <img id="photoPreviewImg" class="w-full h-full object-cover">
+          </div>
+        </div>
+      </div>
+
+      <button id="saveScoreBtn" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-arcade font-bold rounded-2xl transition flex items-center justify-center space-x-2 shadow-lg shadow-cyan-500/25">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <span>RECORD SCORE</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Player Profiles -->
+  <div id="playerModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="panel-arcade border border-slate-700 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-arcade font-bold text-amber-400 glow-amber">SELECT PLAYER</h3>
+        <button id="btnClosePlayerModal" class="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <div>
+        <label class="block text-xs font-header uppercase text-slate-400 font-bold mb-1">Active Roster</label>
+        <select id="playerDropdown" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm font-semibold text-white focus:border-amber-400 focus:outline-none">
           <option value="">-- Choose Name --</option>
         </select>
       </div>
 
       <div class="relative flex py-1 items-center">
         <div class="flex-grow border-t border-slate-800"></div>
-        <span class="flex-shrink mx-2 text-xs text-slate-500 uppercase">Or Register New</span>
+        <span class="flex-shrink mx-2 text-[10px] font-mono text-slate-500 uppercase">Or Add New</span>
         <div class="flex-grow border-t border-slate-800"></div>
       </div>
 
       <div>
-        <input type="text" id="newPlayerName" placeholder="Your Name or Initials" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-white focus:border-amber-400 focus:outline-none uppercase">
-        <button id="btnJoinTourney" class="w-full mt-2 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-lg text-sm transition">
-          Join Tournament
+        <input type="text" id="newPlayerName" placeholder="NAME / INITIALS" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm font-mono text-white focus:border-amber-400 focus:outline-none uppercase">
+        <button id="btnJoinTourney" class="w-full mt-2.5 py-3 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-arcade font-bold rounded-xl text-xs transition shadow-lg shadow-amber-500/20">
+          ADD TO ROSTER
         </button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: Dave Stewart Target Calculator -->
-  <div id="calculatorModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-[#161b2e] border border-cyan-800 rounded-2xl w-full max-w-md p-5 space-y-3">
+  <!-- MODAL: Tournament Selector / Location Creator -->
+  <div id="tourneyModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="panel-arcade border border-cyan-800 rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
-        <h3 class="text-base font-bold text-cyan-400 flex items-center">
-          <i class="fa-solid fa-calculator mr-2"></i> Dave Stewart Target Calc
+        <div>
+          <h3 class="text-base font-arcade font-bold text-cyan-400 glow-cyan">TOURNAMENTS & LOCATIONS</h3>
+          <p class="text-xs text-slate-400 mt-0.5">Switch active venue or start a new tournament</p>
+        </div>
+        <button id="btnCloseTourneyModal" class="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
+      <div>
+        <label class="block text-xs font-header uppercase text-slate-400 font-bold mb-1">Select Tournament</label>
+        <div id="tourneyListContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <div class="relative flex py-1 items-center">
+        <div class="flex-grow border-t border-slate-800"></div>
+        <span class="flex-shrink mx-2 text-[10px] font-mono text-slate-500 uppercase">Create New Tournament</span>
+        <div class="flex-grow border-t border-slate-800"></div>
+      </div>
+
+      <div class="space-y-2">
+        <input type="text" id="newTourneyTitle" placeholder="Tournament Name (e.g. Pinball Expo 2027)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-cyan-400 focus:outline-none">
+        <input type="text" id="newTourneyLocation" placeholder="Location (e.g. Chicago Arena / Home Room)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-cyan-400 focus:outline-none">
+        
+        <div class="flex items-center space-x-2 pt-1">
+          <button id="btnCreateTourney" class="flex-1 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-arcade font-bold rounded-xl text-xs transition">
+            START NEW TOURNAMENT
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Dave Stewart Calculator -->
+  <div id="calculatorModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="panel-arcade border border-slate-700 rounded-3xl w-full max-w-md p-6 space-y-3 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-arcade font-bold text-amber-400 flex items-center">
+          <i class="fa-solid fa-calculator mr-2 text-cyan-400"></i> Dave Stewart Target Calc
         </h3>
-        <button id="btnCloseCalcModal" class="text-slate-400 hover:text-white p-1">
-          <i class="fa-solid fa-xmark"></i>
+        <button id="btnCloseCalcModal" class="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-xs"></i>
         </button>
       </div>
       <p class="text-xs text-slate-400 leading-relaxed">
-        Test 3 representative players for 3 uninterrupted minutes on 5-ball play. Enter their 3-minute marks to derive pace-adjusted target scores.
+        Pace formula based on 3-minute uninterrupted test runs. Prevents long-playing machine bottlenecks.
       </p>
 
-      <div class="grid grid-cols-3 gap-2">
+      <div class="grid grid-cols-3 gap-2 pt-1">
         <div>
-          <label class="text-[10px] uppercase text-slate-400">P1 Score</label>
-          <input type="number" id="calcP1" placeholder="10000000" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+          <label class="text-[10px] font-mono uppercase text-slate-400">Player 1</label>
+          <input type="number" id="calcP1" placeholder="10000000" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs font-mono text-white">
         </div>
         <div>
-          <label class="text-[10px] uppercase text-slate-400">P2 Score</label>
-          <input type="number" id="calcP2" placeholder="14000000" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+          <label class="text-[10px] font-mono uppercase text-slate-400">Player 2</label>
+          <input type="number" id="calcP2" placeholder="14000000" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs font-mono text-white">
         </div>
         <div>
-          <label class="text-[10px] uppercase text-slate-400">P3 Score</label>
-          <input type="number" id="calcP3" placeholder="12000000" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+          <label class="text-[10px] font-mono uppercase text-slate-400">Player 3</label>
+          <input type="number" id="calcP3" placeholder="12000000" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs font-mono text-white">
         </div>
       </div>
 
       <div>
-        <label class="text-[10px] uppercase text-slate-400">Target Pace Adjuster</label>
-        <select id="calcCadence" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+        <label class="text-[10px] font-mono uppercase text-slate-400">Group Cadence Modifier</label>
+        <select id="calcCadence" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white">
           <option value="standard">Standard (~1 tee-off / 5 min)</option>
-          <option value="4player">4-Player Group every 15 min (-20% cutoff)</option>
-          <option value="2player">2-Player Group every 15 min (+20% cutoff)</option>
+          <option value="4player">4-Player Group every 15 min (-20% target)</option>
+          <option value="2player">2-Player Group every 15 min (+20% target)</option>
         </select>
       </div>
 
-      <button id="btnRunCalc" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded text-xs transition">
-        Calculate Recommended Target
+      <button id="btnRunCalc" class="w-full py-2.5 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white font-arcade font-bold rounded-xl text-xs transition shadow-md">
+        CALCULATE TARGET
       </button>
 
-      <div id="calcResultBox" class="p-3 bg-slate-900/90 rounded border border-slate-800 text-center hidden">
-        <div class="text-[10px] text-slate-400 uppercase">Suggested Target Score</div>
-        <div id="calcRecommendedScore" class="text-xl font-bold font-mono text-amber-400 tracking-wider">--</div>
+      <div id="calcResultBox" class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-center hidden">
+        <div class="text-[10px] font-mono text-slate-400 uppercase">Suggested Rounded Target</div>
+        <div id="calcRecommendedScore" class="text-2xl font-arcade font-bold text-amber-400 glow-amber tracking-wider mt-0.5">--</div>
       </div>
     </div>
   </div>
@@ -245,7 +350,7 @@
       'Content-Type': 'application/json'
     };
 
-    const DEFAULT_HOLES = [
+    const DEFAULT_HOLES_TEMPLATE = [
       { id: 1, title: 'Godzilla Premium', location: 'Arena 1', target_score: 15000000, par: 3, notes: 'Focus on Mechagodzilla multiball and destruction jackpots.' },
       { id: 2, title: 'Jurassic Park', location: 'Arena 2', target_score: 25000000, par: 3, notes: 'Capture dinosaurs; start T-Rex multiball early.' },
       { id: 3, title: 'Medieval Madness', location: 'Arena 3', target_score: 12000000, par: 3, notes: 'Destroy the castle gates; lock balls for Castle Multiball.' },
@@ -257,7 +362,9 @@
       { id: 9, title: 'Firepower', location: 'Arena 9', target_score: 250000, par: 3, notes: 'Classic 1980 solid state; light 1-2-3-4-5-6 and lock 3 balls.' }
     ];
 
-    let allHoles = [...DEFAULT_HOLES];
+    let allTournaments = [];
+    let currentTournament = null;
+    let allHoles = [...DEFAULT_HOLES_TEMPLATE];
     let allPlayers = [];
     let allScores = [];
     let currentPlayer = null;
@@ -265,7 +372,6 @@
     let selectedStrokes = 1;
     let compressedPhotoBlob = null;
 
-    // Direct REST API calls with URL apikey fallback
     async function dbGet(path) {
       const sep = path.includes('?') ? '&' : '?';
       const res = await fetch(`${SB_URL}/rest/v1/${path}${sep}apikey=${SB_KEY}`, { headers: HEADERS });
@@ -305,10 +411,10 @@
         if (!view || !btn) return;
         if (t.toLowerCase() === tab) {
           view.classList.remove('hidden');
-          btn.className = 'flex-1 py-2 rounded-lg font-bold transition bg-amber-400 text-slate-950';
+          btn.className = 'py-2.5 rounded-xl transition flex items-center justify-center space-x-2 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 shadow-md shadow-amber-500/20';
         } else {
           view.classList.add('hidden');
-          btn.className = 'flex-1 py-2 rounded-lg font-bold transition text-slate-400 hover:text-white';
+          btn.className = 'py-2.5 rounded-xl transition flex items-center justify-center space-x-2 text-slate-400 hover:text-white';
         }
       });
     }
@@ -317,15 +423,85 @@
       const badge = document.getElementById('playerBadge');
       const alertBox = document.getElementById('noPlayerAlert');
       if (currentPlayer) {
-        badge.innerText = `Player: ${currentPlayer.name}`;
+        badge.innerText = `${currentPlayer.name}`;
         badge.classList.remove('text-slate-400');
         badge.classList.add('text-amber-400', 'font-bold');
         if (alertBox) alertBox.classList.add('hidden');
       } else {
-        badge.innerText = 'No Player Selected';
+        badge.innerText = 'No Player';
         badge.classList.remove('text-amber-400', 'font-bold');
         badge.classList.add('text-slate-400');
         if (alertBox) alertBox.classList.remove('hidden');
+      }
+    }
+
+    function updateTourneyHeader() {
+      const lbl = document.getElementById('labelCurrentTourney');
+      if (currentTournament) {
+        lbl.innerText = `${currentTournament.title} (${currentTournament.location})`;
+      } else {
+        lbl.innerText = 'Select Venue';
+      }
+    }
+
+    function renderTourneyModalList() {
+      const container = document.getElementById('tourneyListContainer');
+      container.innerHTML = '';
+      if (allTournaments.length === 0) {
+        container.innerHTML = '<div class="text-xs text-slate-500 text-center py-2">No tournaments found.</div>';
+        return;
+      }
+      allTournaments.forEach(t => {
+        const isCurrent = currentTournament && currentTournament.id === t.id;
+        const div = document.createElement('div');
+        div.className = `p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition ${isCurrent ? 'bg-cyan-950/60 border-cyan-500/60' : 'bg-slate-900 border-slate-800 hover:border-slate-700'}`;
+        div.innerHTML = `
+          <div>
+            <div class="text-xs font-arcade font-bold ${isCurrent ? 'text-cyan-300' : 'text-slate-200'}">${t.title}</div>
+            <div class="text-[10px] text-slate-400"><i class="fa-solid fa-location-dot mr-1"></i>${t.location}</div>
+          </div>
+          ${isCurrent ? '<span class="text-[10px] bg-cyan-500 text-slate-950 font-bold px-2 py-0.5 rounded">ACTIVE</span>' : ''}
+        `;
+        div.addEventListener('click', () => switchTournament(t.id));
+        container.appendChild(div);
+      });
+    }
+
+    async function switchTournament(tId) {
+      const found = allTournaments.find(t => t.id === tId);
+      if (!found) return;
+      currentTournament = found;
+      localStorage.setItem('pingolf_active_tourney_id', currentTournament.id);
+      updateTourneyHeader();
+      toggleModal('tourneyModal');
+      await syncData();
+    }
+
+    async function createNewTournament() {
+      const titleInput = document.getElementById('newTourneyTitle');
+      const locInput = document.getElementById('newTourneyLocation');
+      const title = titleInput.value.trim();
+      const location = locInput.value.trim();
+
+      if (!title || !location) return alert('Please enter tournament title and location.');
+
+      try {
+        const res = await dbPost('tournaments', [{ title, location }]);
+        const newTourney = res[0];
+        
+        // Seed holes for this new tournament
+        const seededHoles = DEFAULT_HOLES_TEMPLATE.map(h => ({
+          ...h,
+          tournament_id: newTourney.id
+        }));
+        await dbPost('holes', seededHoles);
+
+        allTournaments.unshift(newTourney);
+        titleInput.value = '';
+        locInput.value = '';
+        await switchTournament(newTourney.id);
+      } catch (err) {
+        alert('Failed to create tournament: ' + err.message);
       }
     }
 
@@ -339,34 +515,43 @@
       allHoles.forEach(hole => {
         const recorded = playerScores.find(s => s.hole_id === hole.id);
         const card = document.createElement('div');
-        card.className = `p-4 rounded-xl border transition ${recorded ? 'bg-slate-900/90 border-cyan-700/60' : 'bg-panel border-slate-800'}`;
+        card.className = `panel-arcade p-4 sm:p-5 rounded-2xl border transition duration-200 ${recorded ? 'panel-active' : ''}`;
 
-        let statusBadge = `<span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">Unplayed</span>`;
+        let statusBadge = `<span class="text-[10px] font-mono px-2 py-1 rounded bg-slate-900 border border-slate-800 text-slate-400">UNPLAYED</span>`;
         if (recorded) {
           const diff = recorded.strokes - (hole.par || 3);
-          const diffText = diff === 0 ? 'Even' : (diff > 0 ? `+${diff}` : `${diff}`);
-          statusBadge = `<span class="text-xs px-2.5 py-0.5 rounded font-bold font-mono ${diff <= 0 ? 'bg-cyan-950 text-cyan-400 border border-cyan-800' : 'bg-amber-950 text-amber-400 border border-amber-800'}">${recorded.strokes} Strokes (${diffText})</span>`;
+          const diffText = diff === 0 ? 'EVEN' : (diff > 0 ? `+${diff}` : `${diff}`);
+          const isUnder = diff <= 0;
+          statusBadge = `
+            <span class="text-xs font-arcade font-bold px-2.5 py-1 rounded-lg border ${isUnder ? 'bg-cyan-950/80 text-cyan-300 border-cyan-700/80 glow-cyan' : 'bg-amber-950/80 text-amber-300 border-amber-700/80'}">
+              ${recorded.strokes} STROKE${recorded.strokes > 1 ? 'S' : ''} (${diffText})
+            </span>
+          `;
         }
 
         card.innerHTML = `
           <div class="flex items-start justify-between">
             <div>
               <div class="flex items-center space-x-2">
-                <span class="text-xs font-mono font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded">HOLE ${hole.id}</span>
-                <span class="text-xs text-slate-400">${hole.location || ''}</span>
+                <span class="text-[10px] font-arcade font-bold text-amber-400 bg-amber-950/70 border border-amber-700/50 px-2 py-0.5 rounded">HOLE ${hole.id}</span>
+                <span class="text-xs font-mono text-slate-400">${hole.location || ''}</span>
               </div>
-              <h3 class="text-base font-bold text-white mt-1">${hole.title}</h3>
-              <p class="text-xs text-slate-400 mt-0.5">${hole.notes || ''}</p>
+              <h3 class="text-lg font-header font-bold text-white mt-1.5">${hole.title}</h3>
+              <p class="text-xs text-slate-400 mt-0.5 leading-relaxed">${hole.notes || ''}</p>
             </div>
             <div class="text-right">
               ${statusBadge}
             </div>
           </div>
 
-          <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-            <span class="text-slate-400">Target: <strong class="font-mono text-cyan-400 text-sm">${Number(hole.target_score).toLocaleString()}</strong></span>
-            <button class="hole-play-btn px-3 py-1.5 rounded-lg font-bold transition ${recorded ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700' : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950'}" data-hole="${hole.id}">
-              <i class="fa-solid ${recorded ? 'fa-pen-to-square' : 'fa-play'} mr-1"></i> ${recorded ? 'Edit Score' : 'Play Hole'}
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+            <div>
+              <span class="text-slate-400 text-[11px] uppercase tracking-wider">Target:</span>
+              <strong class="font-arcade text-cyan-400 text-sm ml-1 glow-cyan">${Number(hole.target_score).toLocaleString()}</strong>
+            </div>
+            <button class="hole-play-btn px-4 py-2 rounded-xl font-header font-bold transition flex items-center space-x-1.5 ${recorded ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700' : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 shadow-md shadow-cyan-500/20'}" data-hole="${hole.id}">
+              <i class="fa-solid ${recorded ? 'fa-pen-to-square' : 'fa-play'} text-xs"></i>
+              <span>${recorded ? 'EDIT SCORE' : 'PLAY HOLE'}</span>
             </button>
           </div>
         `;
@@ -387,7 +572,8 @@
       for (let i = 1; i <= 5; i++) {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = `py-3 rounded-xl font-bold font-mono text-lg transition ${selectedStrokes === i ? 'bg-cyan-500 text-slate-950 ring-2 ring-cyan-300' : 'bg-slate-900 text-slate-400 hover:bg-slate-800 border border-slate-700'}`;
+        const isSelected = selectedStrokes === i;
+        btn.className = `py-3 rounded-2xl font-arcade font-bold text-lg transition ${isSelected ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/40 ring-2 ring-cyan-300' : 'bg-slate-900/90 text-slate-400 hover:bg-slate-800 border border-slate-700/80'}`;
         btn.innerText = i === 5 ? '5 (D)' : i;
         btn.addEventListener('click', () => {
           selectedStrokes = i;
@@ -406,312 +592,6 @@
       activeModalHole = allHoles.find(h => h.id === holeId);
       if (!activeModalHole) return;
 
-      document.getElementById('modalHoleBadge').innerText = `HOLE ${activeModalHole.id} • PAR ${activeModalHole.par || 3}`;
+      document.getElementById('modalHoleBadge').innerText = `HOLE ${activeModalHole.id}`;
+      document.getElementById('modalParBadge').innerText = `PAR ${activeModalHole.par || 3}`;
       document.getElementById('modalMachineTitle').innerText = activeModalHole.title;
-      document.getElementById('modalTargetScore').innerText = `Target: ${Number(activeModalHole.target_score).toLocaleString()} pts`;
-
-      const existingScore = allScores.find(s => s.player_id === currentPlayer.id && s.hole_id === holeId);
-      selectedStrokes = existingScore ? existingScore.strokes : 1;
-      document.getElementById('inputActualScore').value = existingScore && existingScore.actual_score ? existingScore.actual_score : '';
-
-      compressedPhotoBlob = null;
-      document.getElementById('photoPreviewContainer').classList.add('hidden');
-      document.getElementById('photoBtnLabel').innerText = existingScore && existingScore.photo_url ? 'Replace Proof' : 'Snap DMD Screen';
-
-      renderStrokeButtons();
-      toggleModal('scoreModal');
-    }
-
-    function renderLeaderboard() {
-      const tbody = document.getElementById('leaderboardBody');
-      if (!tbody) return;
-
-      if (allPlayers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">No players registered yet.</td></tr>`;
-        return;
-      }
-
-      const stats = allPlayers.map(p => {
-        const pScores = allScores.filter(s => s.player_id === p.id);
-        const holesPlayed = pScores.length;
-        const totalStrokes = pScores.reduce((acc, s) => acc + s.strokes, 0);
-
-        let playedPar = 0;
-        pScores.forEach(s => {
-          const h = allHoles.find(hole => hole.id === s.hole_id);
-          playedPar += (h ? (h.par || 3) : 3);
-        });
-
-        const diffToPar = totalStrokes - playedPar;
-        const aces = pScores.filter(s => s.strokes === 1).length;
-        const twos = pScores.filter(s => s.strokes === 2).length;
-
-        return { id: p.id, name: p.name, holesPlayed, totalStrokes, diffToPar, aces, twos };
-      });
-
-      stats.sort((a, b) => {
-        if (a.holesPlayed === 0 && b.holesPlayed === 0) return 0;
-        if (a.holesPlayed === 0) return 1;
-        if (b.holesPlayed === 0) return -1;
-        if (a.totalStrokes !== b.totalStrokes) return a.totalStrokes - b.totalStrokes;
-        if (a.aces !== b.aces) return b.aces - a.aces;
-        return b.twos - a.twos;
-      });
-
-      tbody.innerHTML = '';
-      stats.forEach((row, idx) => {
-        const tr = document.createElement('tr');
-        tr.className = row.holesPlayed > 0 ? 'hover:bg-slate-800/40' : 'opacity-40';
-
-        const diffFormatted = row.holesPlayed === 0 ? '--' : (row.diffToPar === 0 ? 'E' : (row.diffToPar > 0 ? `+${row.diffToPar}` : `${row.diffToPar}`));
-        const diffColor = row.diffToPar <= 0 ? 'text-cyan-400' : 'text-amber-400';
-
-        tr.innerHTML = `
-          <td class="py-3 px-3 font-bold">${idx + 1}</td>
-          <td class="py-3 px-3 font-sans font-semibold text-white flex items-center space-x-2">
-            <span>${row.name}</span>
-            ${row.aces > 0 ? `<span class="text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-800 px-1.5 py-0.2 rounded font-mono">${row.aces} Ace${row.aces > 1 ? 's' : ''}</span>` : ''}
-          </td>
-          <td class="py-3 px-3 text-center">${row.holesPlayed}/${allHoles.length}</td>
-          <td class="py-3 px-3 text-center font-bold ${diffColor}">${diffFormatted}</td>
-          <td class="py-3 px-3 text-right font-bold text-base text-white">${row.totalStrokes}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function renderAuditGallery() {
-      const grid = document.getElementById('auditGrid');
-      if (!grid) return;
-      const proofScores = allScores.filter(s => s.photo_url);
-
-      if (proofScores.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500">No score proof images uploaded yet.</div>`;
-        return;
-      }
-
-      grid.innerHTML = '';
-      proofScores.forEach(s => {
-        const hole = allHoles.find(h => h.id === s.hole_id);
-        const playerObj = allPlayers.find(p => p.id === s.player_id);
-        const playerName = playerObj ? playerObj.name : 'Player';
-
-        const card = document.createElement('div');
-        card.className = 'bg-panel border border-slate-800 rounded-xl overflow-hidden';
-        card.innerHTML = `
-          <a href="${s.photo_url}" target="_blank" rel="noopener noreferrer">
-            <img src="${s.photo_url}" class="w-full h-44 object-cover hover:scale-105 transition duration-300">
-          </a>
-          <div class="p-3">
-            <div class="flex justify-between items-center text-xs">
-              <span class="font-bold text-amber-400">${playerName}</span>
-              <span class="font-mono text-cyan-400">${s.strokes} Strokes</span>
-            </div>
-            <div class="text-xs text-slate-300 mt-1">${hole ? hole.title : `Hole ${s.hole_id}`}</div>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    function handlePhotoInput(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          const maxDim = 900;
-          let w = img.width;
-          let h = img.height;
-          if (w > h && w > maxDim) {
-            h = Math.round((h * maxDim) / w);
-            w = maxDim;
-          } else if (h > maxDim) {
-            w = Math.round((w * maxDim) / h);
-            h = maxDim;
-          }
-          canvas.width = w;
-          canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          canvas.toBlob((blob) => {
-            compressedPhotoBlob = blob;
-            document.getElementById('photoPreviewImg').src = URL.createObjectURL(blob);
-            document.getElementById('photoPreviewContainer').classList.remove('hidden');
-            document.getElementById('photoBtnLabel').innerText = 'Proof Attached';
-          }, 'image/jpeg', 0.8);
-        };
-        img.src = evt.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    async function syncData() {
-      try {
-        const playersData = await dbGet('players?select=*&order=name.asc');
-        allPlayers = playersData || [];
-        const dropdown = document.getElementById('playerDropdown');
-        dropdown.innerHTML = '<option value="">-- Choose Name --</option>';
-        allPlayers.forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p.id;
-          opt.innerText = p.name;
-          if (currentPlayer && currentPlayer.id === p.id) opt.selected = true;
-          dropdown.appendChild(opt);
-        });
-
-        try {
-          const holesData = await dbGet('holes?select=*&order=id.asc');
-          if (holesData && holesData.length > 0) allHoles = holesData;
-        } catch (e) {}
-
-        const scoresData = await dbGet('scores?select=*');
-        allScores = scoresData || [];
-
-        renderScorecard();
-        renderLeaderboard();
-        renderAuditGallery();
-      } catch (err) {
-        console.warn('Sync notice:', err.message);
-      }
-    }
-
-    async function registerPlayer() {
-      const input = document.getElementById('newPlayerName');
-      const name = input.value.trim().toUpperCase();
-      if (!name) return alert('Please enter a name.');
-
-      try {
-        const res = await dbPost('players', [{ name }]);
-        currentPlayer = res[0];
-      } catch (e) {
-        currentPlayer = { id: 'p_' + Date.now(), name: name };
-      }
-
-      localStorage.setItem('pingolf_active_player', JSON.stringify(currentPlayer));
-      updatePlayerHeader();
-      input.value = '';
-      toggleModal('playerModal');
-      await syncData();
-    }
-
-    async function saveActiveScore() {
-      if (!currentPlayer || !activeModalHole) return;
-
-      const saveBtn = document.getElementById('saveScoreBtn');
-      saveBtn.disabled = true;
-      saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Saving...`;
-
-      let photoUrl = null;
-
-      try {
-        if (compressedPhotoBlob) {
-          const filePath = `${currentPlayer.id}_h${activeModalHole.id}_${Date.now()}.jpg`;
-          const uploadRes = await fetch(`${SB_URL}/storage/v1/object/score-proofs/${filePath}?apikey=${SB_KEY}`, {
-            method: 'POST',
-            headers: {
-              'apikey': SB_KEY,
-              'Authorization': 'Bearer ' + SB_KEY,
-              'Content-Type': 'image/jpeg'
-            },
-            body: compressedPhotoBlob
-          });
-          if (uploadRes.ok) {
-            photoUrl = `${SB_URL}/storage/v1/object/public/score-proofs/${filePath}`;
-          }
-        }
-
-        const numVal = document.getElementById('inputActualScore').value;
-        const actualScore = numVal ? parseInt(numVal, 10) : null;
-
-        const record = {
-          player_id: currentPlayer.id,
-          hole_id: activeModalHole.id,
-          strokes: selectedStrokes,
-          actual_score: actualScore,
-          updated_at: new Date().toISOString()
-        };
-        if (photoUrl) record.photo_url = photoUrl;
-
-        await dbUpsert('scores', [record]);
-        toggleModal('scoreModal');
-        await syncData();
-      } catch (err) {
-        alert('Could not save score: ' + err.message);
-      } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up mr-2"></i> Save & Sync Score`;
-      }
-    }
-
-    function calculateDaveStewart() {
-      const p1 = parseFloat(document.getElementById('calcP1').value) || 0;
-      const p2 = parseFloat(document.getElementById('calcP2').value) || 0;
-      const p3 = parseFloat(document.getElementById('calcP3').value) || 0;
-      const cadence = document.getElementById('calcCadence').value;
-
-      if (!p1 && !p2 && !p3) return alert('Enter at least one player score.');
-
-      const valid = [p1, p2, p3].filter(v => v > 0);
-      let avg = valid.reduce((a, b) => a + b, 0) / valid.length;
-
-      if (cadence === '4player') avg *= 0.8;
-      if (cadence === '2player') avg *= 1.2;
-
-      const digits = Math.floor(Math.log10(avg));
-      const factor = Math.pow(10, digits - 1);
-      const rounded = Math.round(avg / factor) * factor;
-
-      document.getElementById('calcRecommendedScore').innerText = Number(rounded).toLocaleString();
-      document.getElementById('calcResultBox').classList.remove('hidden');
-    }
-
-    // Direct event binding execution
-    (function initApp() {
-      try {
-        const cached = localStorage.getItem('pingolf_active_player');
-        if (cached) currentPlayer = JSON.parse(cached);
-      } catch (e) {}
-
-      updatePlayerHeader();
-      renderScorecard();
-
-      document.getElementById('btnOpenPlayer').addEventListener('click', () => toggleModal('playerModal'));
-      document.getElementById('btnAlertSelectPlayer').addEventListener('click', () => toggleModal('playerModal'));
-      document.getElementById('btnClosePlayerModal').addEventListener('click', () => toggleModal('playerModal'));
-
-      document.getElementById('btnOpenCalc').addEventListener('click', () => toggleModal('calculatorModal'));
-      document.getElementById('btnCloseCalcModal').addEventListener('click', () => toggleModal('calculatorModal'));
-      document.getElementById('btnRunCalc').addEventListener('click', calculateDaveStewart);
-
-      document.getElementById('btnCloseScoreModal').addEventListener('click', () => toggleModal('scoreModal'));
-      document.getElementById('btnSnapPhoto').addEventListener('click', () => document.getElementById('inputProofPhoto').click());
-      document.getElementById('inputProofPhoto').addEventListener('change', handlePhotoInput);
-      document.getElementById('saveScoreBtn').addEventListener('click', saveActiveScore);
-
-      document.getElementById('tabBtnScorecard').addEventListener('click', () => switchTab('scorecard'));
-      document.getElementById('tabBtnLeaderboard').addEventListener('click', () => switchTab('leaderboard'));
-      document.getElementById('tabBtnAudit').addEventListener('click', () => switchTab('audit'));
-
-      document.getElementById('btnJoinTourney').addEventListener('click', registerPlayer);
-      document.getElementById('playerDropdown').addEventListener('change', (e) => {
-        const id = e.target.value;
-        const p = allPlayers.find(item => item.id === id);
-        if (p) {
-          currentPlayer = p;
-          localStorage.setItem('pingolf_active_player', JSON.stringify(currentPlayer));
-          updatePlayerHeader();
-          toggleModal('playerModal');
-          renderScorecard();
-          renderLeaderboard();
-        }
-      });
-
-      syncData();
-      setInterval(syncData, 5000);
-    })();
-  </script>
-</body>
-</html>
