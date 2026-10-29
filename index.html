@@ -61,7 +61,7 @@
           <div class="flex items-center space-x-2 text-xs font-semibold mt-1">
             <button id="btnTourneyPicker" class="text-slate-300 hover:text-amber-300 flex items-center space-x-1.5 bg-slate-900/80 px-2 py-0.5 rounded border border-slate-700/60 transition">
               <i class="fa-solid fa-location-dot text-amber-400 text-[10px]"></i>
-              <span id="labelCurrentTourney" class="truncate max-w-[140px] sm:max-w-[200px]">Loading...</span>
+              <span id="labelCurrentTourney" class="truncate max-w-[140px] sm:max-w-[200px]">Bellbrook Greens 2026</span>
               <i class="fa-solid fa-chevron-down text-[9px] text-slate-500"></i>
             </button>
             <span id="playerBadge" class="text-slate-400 truncate max-w-[110px] sm:max-w-[150px]">No Player</span>
@@ -342,20 +342,20 @@
     };
 
     const DEFAULT_HOLES_TEMPLATE = [
-      { id: 1, title: 'Godzilla Premium', location: 'Hole 1', target_score: 15000000, par: 3, notes: 'Focus on Mechagodzilla multiball and destruction jackpots.' },
-      { id: 2, title: 'Jurassic Park', location: 'Hole 2', target_score: 25000000, par: 3, notes: 'Capture dinosaurs; start T-Rex multiball early.' },
-      { id: 3, title: 'Medieval Madness', location: 'Hole 3', target_score: 12000000, par: 3, notes: 'Destroy the castle gates; lock balls for Castle Multiball.' },
-      { id: 4, title: 'Attack from Mars', location: 'Hole 4', target_score: 300000000, par: 3, notes: 'Focus center shield knockdowns and Total Annihilation.' },
-      { id: 5, title: 'Iron Maiden', location: 'Hole 5', target_score: 20000000, par: 3, notes: 'Loop orbits to light lock and Trooper Multiball.' },
-      { id: 6, title: 'Deadpool Pro', location: 'Hole 6', target_score: 18000000, par: 3, notes: 'Team up with Colossus and battle Juggernaut.' },
-      { id: 7, title: 'Transformers MTMTE', location: 'Hole 7', target_score: 10000000, par: 3, notes: 'Decepticon battles and Matrix ramp multiball.' },
-      { id: 8, title: 'The Addams Family', location: 'Hole 8', target_score: 40000000, par: 3, notes: 'Bear kicks to tour the mansion and quick multiball.' },
-      { id: 9, title: 'Firepower', location: 'Hole 9', target_score: 250000, par: 3, notes: 'Classic 1980 solid state; light 1-2-3-4-5-6 and lock 3 balls.' }
+      { id: 101, title: 'Godzilla Premium', location: 'Hole 1', target_score: 15000000, par: 3, notes: 'Focus on Mechagodzilla multiball and destruction jackpots.' },
+      { id: 102, title: 'Jurassic Park', location: 'Hole 2', target_score: 25000000, par: 3, notes: 'Capture dinosaurs; start T-Rex multiball early.' },
+      { id: 103, title: 'Medieval Madness', location: 'Hole 3', target_score: 12000000, par: 3, notes: 'Destroy the castle gates; lock balls for Castle Multiball.' },
+      { id: 104, title: 'Attack from Mars', location: 'Hole 4', target_score: 300000000, par: 3, notes: 'Focus center shield knockdowns and Total Annihilation.' },
+      { id: 105, title: 'Iron Maiden', location: 'Hole 5', target_score: 20000000, par: 3, notes: 'Loop orbits to light lock and Trooper Multiball.' },
+      { id: 106, title: 'Deadpool Pro', location: 'Hole 6', target_score: 18000000, par: 3, notes: 'Team up with Colossus and battle Juggernaut.' },
+      { id: 107, title: 'Transformers MTMTE', location: 'Hole 7', target_score: 10000000, par: 3, notes: 'Decepticon battles and Matrix ramp multiball.' },
+      { id: 108, title: 'The Addams Family', location: 'Hole 8', target_score: 40000000, par: 3, notes: 'Bear kicks to tour the mansion and quick multiball.' },
+      { id: 109, title: 'Firepower', location: 'Hole 9', target_score: 250000, par: 3, notes: 'Classic 1980 solid state; light 1-2-3-4-5-6 and lock 3 balls.' }
     ];
 
     let allTournaments = [];
     let currentTournament = null;
-    let allHoles = [];
+    let allHoles = [...DEFAULT_HOLES_TEMPLATE];
     let allPlayers = [];
     let allScores = [];
     let currentPlayer = null;
@@ -484,7 +484,6 @@
         const res = await dbPost('tournaments', [{ title, location }]);
         const newTourney = res[0];
         
-        // Seed standard 9 holes with unique IDs for this tournament
         const offset = Date.now() % 100000;
         const seededHoles = DEFAULT_HOLES_TEMPLATE.map((h, i) => ({
           ...h,
@@ -674,7 +673,6 @@
       const grid = document.getElementById('auditGrid');
       if (!grid) return;
       
-      // Strict tournament-scoped photo proofs
       const proofScores = allScores.filter(s => s.photo_url);
 
       if (proofScores.length === 0) {
@@ -746,19 +744,31 @@
 
     async function syncData() {
       try {
-        // Fetch tournaments
-        const tourneyData = await dbGet('tournaments?select=*&order=created_at.desc');
-        if (tourneyData && tourneyData.length > 0) {
-          allTournaments = tourneyData;
-          const savedTourneyId = localStorage.getItem('pingolf_active_tourney_id');
-          // Prefer Bellbrook Greens 2026 if present or saved
-          currentTournament = allTournaments.find(t => t.id === savedTourneyId) 
-            || allTournaments.find(t => t.title.includes('Bellbrook')) 
-            || allTournaments[0];
-          updateTourneyHeader();
+        const DEFAULT_TOURNAMENT = {
+          id: 'b0000000-0000-0000-0000-000000000001',
+          title: 'Bellbrook Greens 2026',
+          location: 'Bellbrook Arcade & Game Room'
+        };
+
+        try {
+          const tourneyData = await dbGet('tournaments?select=*&order=created_at.desc');
+          if (tourneyData && tourneyData.length > 0) {
+            allTournaments = tourneyData;
+          } else {
+            allTournaments = [DEFAULT_TOURNAMENT];
+          }
+        } catch (e) {
+          console.warn('Using default tournament fallback:', e);
+          allTournaments = [DEFAULT_TOURNAMENT];
         }
 
-        // Fetch players
+        const savedTourneyId = localStorage.getItem('pingolf_active_tourney_id');
+        currentTournament = allTournaments.find(t => t.id === savedTourneyId)
+          || allTournaments.find(t => t.title.includes('Bellbrook'))
+          || allTournaments[0];
+
+        updateTourneyHeader();
+
         const playersData = await dbGet('players?select=*&order=name.asc');
         allPlayers = playersData || [];
         const dropdown = document.getElementById('playerDropdown');
@@ -771,7 +781,6 @@
           dropdown.appendChild(opt);
         });
 
-        // Fetch holes strictly for current tournament
         if (currentTournament) {
           const holesData = await dbGet(`holes?tournament_id=eq.${currentTournament.id}&select=*&order=id.asc`);
           allHoles = (holesData && holesData.length > 0) ? holesData : [...DEFAULT_HOLES_TEMPLATE];
@@ -779,7 +788,6 @@
           allHoles = [...DEFAULT_HOLES_TEMPLATE];
         }
 
-        // Fetch scores strictly for current tournament
         if (currentTournament) {
           const scoresData = await dbGet(`scores?tournament_id=eq.${currentTournament.id}&select=*`);
           allScores = scoresData || [];
@@ -894,7 +902,6 @@
 
       updatePlayerHeader();
 
-      // Modal Triggers
       document.getElementById('btnOpenPlayer').addEventListener('click', () => toggleModal('playerModal'));
       document.getElementById('btnAlertSelectPlayer').addEventListener('click', () => toggleModal('playerModal'));
       document.getElementById('btnClosePlayerModal').addEventListener('click', () => toggleModal('playerModal'));
