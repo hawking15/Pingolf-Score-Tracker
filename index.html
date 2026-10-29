@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PinGolf Master Tour</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            pinneon: {
+              yellow: '#FFE600',
+              orange: '#FF5E00',
+              pink: '#FF007F',
+              cyan: '#00F0FF',
+              green: '#00FF66',
+              dark: '#0e111a',
+              card: '#181d2c',
+              border: '#2c354e'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Neon Glows & Arcade Aesthetics */
+    .glow-text-yellow { text-shadow: 0 0 10px rgba(255, 230, 0, 0.6); }
+    .glow-text-pink { text-shadow: 0 0 10px rgba(255, 0, 127, 0.6); }
+    .glow-text-cyan { text-shadow: 0 0 10px rgba(0, 240, 255, 0.6); }
+    .glow-box-yellow { box-shadow: 0 0 15px rgba(255, 230, 0, 0.25); }
+    .glow-box-pink { box-shadow: 0 0 15px rgba(255, 0, 127, 0.25); }
+    .glow-box-cyan { box-shadow: 0 0 15px rgba(0, 240, 255, 0.25); }
+    
+    /* Smooth Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0e111a; }
+    ::-webkit-scrollbar-thumb { background: #2c354e; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #00F0FF; }
+
+    /* Custom Mobile Touch Optimizations */
+    .touch-target { min-height: 44px; min-width: 44px; }
+  </style>
+</head>
+<body class="bg-[#0b0e14] text-slate-100 min-h-screen font-sans selection:bg-pinneon-pink selection:text-white flex flex-col pb-16 md:pb-0">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="sticky top-0 z-30 bg-[#111624]/95 backdrop-blur-md border-b border-pinneon-border px-4 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-pinneon-pink to-pinneon-yellow flex items-center justify-center text-black font-black text-xl shadow-lg shadow-pink-500/20">
+          <i class="fa-solid fa-flag"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-black text-xl tracking-tight bg-gradient-to-r from-pinneon-yellow via-pinneon-pink to-pinneon-cyan bg-clip-text text-transparent">PINGOLF</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-bold bg-pinneon-cyan/20 text-pinneon-cyan border border-pinneon-cyan/40">TOUR v2.0</span>
+          </div>
+          <p id="headerTournamentName" class="text-xs text-slate-400 truncate max-w-[200px] sm:max-w-xs">Friday Night Pin Clash</p>
+        </div>
+      </div>
+
+      <!-- Quick Player Switcher / TD Profile -->
+      <div class="flex items-center gap-2">
+        <label for="activePlayerSelect" class="hidden sm:inline text-xs text-slate-400 font-medium">Scoring As:</label>
+        <div class="relative">
+          <select id="activePlayerSelect" class="bg-[#1c2336] text-pinneon-yellow text-sm font-semibold py-1.5 pl-3 pr-8 rounded-lg border border-pinneon-border focus:outline-none focus:border-pinneon-cyan cursor-pointer transition">
+            <!-- Dynamically populated -->
+          </select>
+          <i class="fa-solid fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none"></i>
+        </div>
+        <button onclick="openPlayerModal()" title="Add / Manage Players" class="w-9 h-9 rounded-lg bg-pinneon-border hover:bg-slate-700 text-slate-200 flex items-center justify-center transition">
+          <i class="fa-solid fa-user-plus text-sm"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="bg-[#141a29] border-b border-pinneon-border">
+    <div class="max-w-6xl mx-auto flex overflow-x-auto no-scrollbar">
+      <button onclick="switchTab('scorecard')" id="tabBtn-scorecard" class="nav-tab flex-1 min-w-[120px] py-3 px-4 text-center text-sm font-bold border-b-2 border-pinneon-cyan text-pinneon-cyan flex items-center justify-center gap-2 transition">
+        <i class="fa-solid fa-golf-ball-tee"></i>
+        <span>Scorecard</span>
+      </button>
+      <button onclick="switchTab('leaderboard')" id="tabBtn-leaderboard" class="nav-tab flex-1 min-w-[120px] py-3 px-4 text-center text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2 transition">
+        <i class="fa-solid fa-trophy"></i>
+        <span>Leaderboard</span>
+      </button>
+      <button onclick="switchTab('course')" id="tabBtn-course" class="nav-tab flex-1 min-w-[120px] py-3 px-4 text-center text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2 transition">
+        <i class="fa-solid fa-map"></i>
+        <span>The Course</span>
+      </button>
+      <button onclick="switchTab('calculator')" id="tabBtn-calculator" class="nav-tab flex-1 min-w-[120px] py-3 px-4 text-center text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2 transition">
+        <i class="fa-solid fa-calculator"></i>
+        <span>Target Calc</span>
+      </button>
+      <button onclick="switchTab('settings')" id="tabBtn-settings" class="nav-tab flex-1 min-w-[120px] py-3 px-4 text-center text-sm font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2 transition">
+        <i class="fa-solid fa-sliders"></i>
+        <span>Tour Rules</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6">
+
+    <!-- ============================================== -->
+    <!-- TAB 1: PLAYER SCORECARD VIEW -->
+    <!-- ============================================== -->
+    <section id="view-scorecard" class="space-y-6">
+      <!-- Player Header Card -->
+      <div class="bg-gradient-to-r from-[#181d2c] to-[#121622] rounded-2xl p-5 border border-pinneon-border relative overflow-hidden">
+        <div class="absolute -right-8 -top-8 w-32 h-32 bg-pinneon-pink/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs uppercase tracking-wider font-extrabold text-pinneon-cyan">Player Scorecard</span>
+              <span id="scorecardHolesFinished" class="text-xs bg-slate-800 text-slate-300 font-semibold px-2 py-0.5 rounded-full">0/9 Holes</span>
+            </div>
+            <h2 id="scorecardPlayerName" class="text-2xl sm:text-3xl font-black text-white mt-1">Select Player</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Click any hole card below to enter strokes, log score, or snap a photo of the DMD / LCD display.</p>
+          </div>
+          <!-- Totals badge -->
+          <div class="flex items-center gap-3 bg-[#0d1017] p-3 rounded-xl border border-pinneon-border">
+            <div class="text-center px-2">
+              <span class="block text-[11px] uppercase tracking-wider text-slate-400 font-bold">Strokes</span>
+              <span id="playerTotalStrokes" class="text-2xl font-black text-pinneon-yellow">0</span>
+            </div>
+            <div class="w-px h-8 bg-slate-700"></div>
+            <div class="text-center px-2">
+              <span class="block text-[11px] uppercase tracking-wider text-slate-400 font-bold">To Par</span>
+              <span id="playerToPar" class="text-2xl font-black text-slate-300">E</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Hole Filter / Progress pills -->
+      <div id="holesCardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Hole cards injected dynamically -->
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 2: LIVE LEADERBOARD -->
+    <!-- ============================================== -->
+    <section id="view-leaderboard" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-2xl font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-trophy text-pinneon-yellow glow-text-yellow"></i>
+            Tour Standings
+          </h2>
+          <p class="text-xs text-slate-400">Lowest total strokes wins. Tiebreaker favors most holes-in-one, then holes-in-two.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="renderLeaderboard()" class="px-3 py-1.5 bg-[#181d2c] hover:bg-slate-700 text-xs font-bold rounded-lg border border-pinneon-border text-slate-300 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-arrows-rotate"></i> Refresh
+          </button>
+          <button onclick="exportTournamentData()" class="px-3 py-1.5 bg-[#181d2c] hover:bg-slate-700 text-xs font-bold rounded-lg border border-pinneon-border text-slate-300 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-file-export"></i> Export JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- Leaderboard Table -->
+      <div class="bg-[#141a29] rounded-2xl border border-pinneon-border overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-[#0e121e] text-[11px] uppercase tracking-wider text-slate-400 border-b border-pinneon-border">
+                <th class="py-3 px-4 text-center w-12">Pos</th>
+                <th class="py-3 px-4">Player</th>
+                <th class="py-3 px-4 text-center">Holes Thru</th>
+                <th class="py-3 px-4 text-center">To Par</th>
+                <th class="py-3 px-4 text-center">Strokes</th>
+                <th class="py-3 px-4 text-center">Aces (1s)</th>
+                <th class="py-3 px-4 text-center">2s</th>
+                <th class="py-3 px-4 text-right">Details</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardTbody" class="divide-y divide-pinneon-border/60 text-sm">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Tournament Summary Notice -->
+      <div id="leaderboardRuleFooter" class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 flex flex-col sm:flex-row justify-between gap-2">
+        <span><i class="fa-solid fa-circle-info text-pinneon-cyan mr-1.5"></i> Stroke Limit: <strong id="summaryStrokeLimit">5</strong> | Par Default: <strong id="summaryParDefault">3</strong> | Holes Counted: <strong id="summaryHolesCounted">All</strong></span>
+        <span>Auto-Tiebreaker: <strong class="text-pinneon-green">Active (Aces &gt; 2s)</strong></span>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 3: THE COURSE / HOLES CONFIG -->
+    <!-- ============================================== -->
+    <section id="view-course" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-2xl font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-map text-pinneon-cyan glow-text-cyan"></i>
+            The Pinball Course
+          </h2>
+          <p class="text-xs text-slate-400">Manage pinball arenas, target scores, and rule tips for each hole.</p>
+        </div>
+        <button onclick="openHoleModal(null)" class="px-4 py-2 bg-gradient-to-r from-pinneon-cyan to-blue-500 hover:opacity-90 text-black font-extrabold text-xs rounded-xl shadow-lg shadow-cyan-500/20 flex items-center gap-2 transition">
+          <i class="fa-solid fa-plus"></i> Add New Hole
+        </button>
+      </div>
+
+      <div id="courseHolesList" class="space-y-4">
+        <!-- Render course hole management items -->
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 4: DAVE STEWART TARGET SCORE CALCULATOR -->
+    <!-- ============================================== -->
+    <section id="view-calculator" class="hidden space-y-6">
+      <div class="bg-gradient-to-br from-[#181d2c] to-[#121622] rounded-2xl p-6 border border-pinneon-border relative overflow-hidden">
+        <div class="max-w-2xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pinneon-yellow/10 border border-pinneon-yellow/30 text-pinneon-yellow text-xs font-bold mb-3">
+            <i class="fa-solid fa-lightbulb"></i> Dave Stewart Method
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-black text-white">Target Score Architect</h2>
+          <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+            Avoid tournament bottlenecks by benchmarking time spent at machines instead of raw max score. Have 3 benchmark players play for exactly <strong>3 uninterrupted minutes</strong> (using a 5-ball setup). Log their scores below to compute the optimum rounded target.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: Calculator Inputs -->
+        <div class="lg:col-span-7 bg-[#141a29] rounded-2xl p-6 border border-pinneon-border space-y-5">
+          <h3 class="text-base font-bold text-pinneon-yellow flex items-center gap-2">
+            <i class="fa-solid fa-stopwatch"></i> 3-Minute Benchmark Scores
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Player 1 Score</label>
+              <input type="number" id="calcP1" placeholder="e.g. 12500000" value="12000000" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border focus:border-pinneon-cyan text-sm focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Player 2 Score</label>
+              <input type="number" id="calcP2" placeholder="e.g. 15200000" value="14500000" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border focus:border-pinneon-cyan text-sm focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Player 3 Score</label>
+              <input type="number" id="calcP3" placeholder="e.g. 13800000" value="13200000" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border focus:border-pinneon-cyan text-sm focus:outline-none">
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-800">
+            <label class="block text-xs font-semibold text-slate-400 mb-2">Group Pace / Pacing Cadence</label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label class="flex items-center gap-2.5 p-3 rounded-xl bg-[#1c2336] border border-pinneon-border cursor-pointer hover:border-pinneon-cyan transition">
+                <input type="radio" name="calcCadence" value="4p" checked class="text-pinneon-cyan focus:ring-0">
+                <div class="text-xs">
+                  <div class="font-bold text-white">4-Player</div>
+                  <div class="text-slate-400 text-[10px]">-20% Cutoff (15 min)</div>
+                </div>
+              </label>
+              <label class="flex items-center gap-2.5 p-3 rounded-xl bg-[#1c2336] border border-pinneon-border cursor-pointer hover:border-pinneon-cyan transition">
+                <input type="radio" name="calcCadence" value="std" class="text-pinneon-cyan focus:ring-0">
+                <div class="text-xs">
+                  <div class="font-bold text-white">Standard</div>
+                  <div class="text-slate-400 text-[10px]">Pure Average</div>
+                </div>
+              </label>
+              <label class="flex items-center gap-2.5 p-3 rounded-xl bg-[#1c2336] border border-pinneon-border cursor-pointer hover:border-pinneon-cyan transition">
+                <input type="radio" name="calcCadence" value="2p" class="text-pinneon-cyan focus:ring-0">
+                <div class="text-xs">
+                  <div class="font-bold text-white">2-Player</div>
+                  <div class="text-slate-400 text-[10px]">+20% Extension</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <button onclick="calculateTargetScore()" class="w-full py-3 bg-gradient-to-r from-pinneon-yellow to-pinneon-orange hover:opacity-90 text-black font-black text-sm rounded-xl shadow-lg transition">
+            Calculate Recommended Target
+          </button>
+        </div>
+
+        <!-- Right: Results Panel -->
+        <div class="lg:col-span-5 bg-[#141a29] rounded-2xl p-6 border border-pinneon-border flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Formula Output</span>
+            <div class="mt-4 p-5 rounded-2xl bg-[#0e121e] border border-pinneon-yellow/30 text-center">
+              <span class="text-xs text-slate-400 font-semibold block mb-1">Recommended Target (Rounded)</span>
+              <span id="calcResultRounded" class="text-3xl sm:text-4xl font-black text-pinneon-yellow glow-text-yellow block tracking-tight">10,000,000</span>
+              <span id="calcResultRaw" class="text-xs text-slate-400 mt-2 block">Raw Calculated: 10,586,666</span>
+            </div>
+
+            <div class="mt-5 space-y-2 text-xs text-slate-300">
+              <div class="flex justify-between py-1.5 border-b border-slate-800">
+                <span class="text-slate-400">3-Player Raw Average:</span>
+                <span id="calcAvgScore" class="font-bold">13,233,333</span>
+              </div>
+              <div class="flex justify-between py-1.5 border-b border-slate-800">
+                <span class="text-slate-400">Cadence Adjustment:</span>
+                <span id="calcAdjustmentLabel" class="font-bold text-pinneon-pink">-20% (Fast 4-Player)</span>
+              </div>
+              <div class="flex justify-between py-1.5">
+                <span class="text-slate-400">Estimated Hole Throughput:</span>
+                <span class="font-bold text-pinneon-green">~15 min / 4-Player group</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-slate-800">
+            <label class="block text-xs font-semibold text-slate-400 mb-1.5">Apply Target Directly To Hole:</label>
+            <div class="flex gap-2">
+              <select id="calcApplyToHoleSelect" class="flex-1 bg-[#1c2336] text-xs text-white rounded-xl border border-pinneon-border px-3 py-2">
+                <!-- Injected dynamically -->
+              </select>
+              <button onclick="applyCalculatedTarget()" class="px-4 py-2 bg-pinneon-cyan hover:bg-cyan-400 text-black font-extrabold text-xs rounded-xl transition">
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- TAB 5: TOURNAMENT RULES & SETTINGS -->
+    <!-- ============================================== -->
+    <section id="view-settings" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-black text-white flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-pinneon-pink glow-text-pink"></i>
+            Tournament Rules &amp; Config
+          </h2>
+          <p class="text-xs text-slate-400">Configure tournament format, stroke caps, drop holes, and tiebreakers.</p>
+        </div>
+        <button onclick="saveTournamentConfig()" class="px-5 py-2.5 bg-gradient-to-r from-pinneon-pink to-purple-600 hover:opacity-90 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-pink-500/20 flex items-center gap-2 transition">
+          <i class="fa-solid fa-floppy-disk"></i> Save Rules
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Main Settings Card -->
+        <div class="bg-[#141a29] rounded-2xl p-6 border border-pinneon-border space-y-4">
+          <h3 class="text-base font-bold text-pinneon-cyan">Tournament Parameters</h3>
+          
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Tournament Name</label>
+            <input type="text" id="configTourName" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none">
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Stroke Limit (Per Hole)</label>
+              <input type="number" id="configStrokeLimit" min="1" max="10" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none">
+              <span class="text-[10px] text-slate-400">Max strokes awarded if target isn't reached (typically 5 or 6)</span>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Default Par Per Hole</label>
+              <input type="number" id="configDefaultPar" min="1" max="6" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none">
+              <span class="text-[10px] text-slate-400">Standard is Par 3</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Holes Counted</label>
+              <select id="configHolesCounted" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none">
+                <option value="all">All Holes Count</option>
+                <option value="drop1">Drop 1 Worst Result</option>
+                <option value="drop2">Drop 2 Worst Results</option>
+              </select>
+              <span class="text-[10px] text-slate-400">Disregards player's highest stroke holes</span>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1">Automatic Tiebreaker</label>
+              <select id="configTiebreaker" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none">
+                <option value="true">Enabled (Aces &gt; 2s)</option>
+                <option value="false">Disabled (Co-Ties)</option>
+              </select>
+              <span class="text-[10px] text-slate-400">Breaks ties by most 1s, then 2s</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger Zone / Data Management -->
+        <div class="bg-[#141a29] rounded-2xl p-6 border border-pinneon-border space-y-4 flex flex-col justify-between">
+          <div>
+            <h3 class="text-base font-bold text-rose-400">Data Management &amp; Presets</h3>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+              All scores, photo snapshots, and custom holes are automatically retained in browser storage. You can backup data, reset scores for a new round, or restore sample default tournament data.
+            </p>
+
+            <div class="space-y-3 mt-4">
+              <button onclick="resetAllScoresOnly()" class="w-full py-2.5 px-4 bg-[#1c2336] hover:bg-slate-700 text-xs font-bold text-amber-400 rounded-xl border border-amber-400/30 flex items-center justify-center gap-2 transition">
+                <i class="fa-solid fa-eraser"></i> Clear Player Scores Only (Keep Holes &amp; Players)
+              </button>
+              <button onclick="restoreDefaults()" class="w-full py-2.5 px-4 bg-[#1c2336] hover:bg-slate-700 text-xs font-bold text-pinneon-cyan rounded-xl border border-pinneon-cyan/30 flex items-center justify-center gap-2 transition">
+                <i class="fa-solid fa-rotate-left"></i> Reload 9-Hole Arcade Classic Preset
+              </button>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-800">
+            <button onclick="wipeAllData()" class="w-full py-2.5 px-4 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold rounded-xl border border-rose-500/30 flex items-center justify-center gap-2 transition">
+              <i class="fa-solid fa-triangle-exclamation"></i> Factory Reset Tournament
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================== -->
+  <!-- MODAL: SCORE ENTRY & PHOTO PROOF SNAPSHOT -->
+  <!-- ============================================== -->
+  <div id="scoreModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#141a29] border border-pinneon-border rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl relative my-auto animate-in fade-in zoom-in duration-200">
+      
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-[#1b2234] to-[#121622] p-5 border-b border-pinneon-border flex justify-between items-start">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="modalHoleBadge" class="text-xs font-black px-2.5 py-0.5 rounded-full bg-pinneon-cyan/20 text-pinneon-cyan border border-pinneon-cyan/40">HOLE 1</span>
+            <span id="modalArenaBadge" class="text-xs text-slate-400 font-semibold">Location / Arena</span>
+          </div>
+          <h3 id="modalMachineName" class="text-xl font-black text-white mt-1">Medieval Madness</h3>
+        </div>
+        <button onclick="closeScoreModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Target Banner -->
+      <div class="bg-[#0b0e14] px-5 py-3 border-b border-pinneon-border flex justify-between items-center text-xs">
+        <div>
+          <span class="text-slate-400">Target Score:</span>
+          <span id="modalTargetScore" class="font-black text-pinneon-yellow ml-1 text-sm">15,000,000</span>
+        </div>
+        <div>
+          <span class="text-slate-400">Par:</span>
+          <span id="modalPar" class="font-bold text-white ml-1">3</span>
+        </div>
+        <div>
+          <span class="text-slate-400">Max Strokes:</span>
+          <span id="modalStrokeCap" class="font-bold text-pinneon-pink ml-1">5</span>
+        </div>
+      </div>
+
+      <!-- Scoring Inputs Form -->
+      <div class="p-5 space-y-5">
+        <!-- Stroke Selection Buttons (1 to Cap) -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+            Strokes Taken (Balls to achieve target)
+          </label>
+          <div id="strokeButtonsContainer" class="grid grid-cols-5 gap-2">
+            <!-- Buttons injected based on tournament stroke limit -->
+          </div>
+          <p id="strokeHelpText" class="text-[11px] text-slate-400 mt-2">
+            Select 1 if achieved on Ball 1. Select the max limit if target was not achieved.
+          </p>
+        </div>
+
+        <!-- Optional Final Score Achieved -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
+            Actual Final Score Reached (Optional)
+          </label>
+          <input type="number" id="modalFinalScoreInput" placeholder="e.g. 18450200" class="w-full bg-[#1c2336] rounded-xl px-3 py-2.5 text-white border border-pinneon-border focus:border-pinneon-cyan text-sm focus:outline-none">
+        </div>
+
+        <!-- Photo Proof Section -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+            <span><i class="fa-solid fa-camera text-pinneon-cyan mr-1"></i> Score Photo Proof</span>
+            <span class="text-[10px] text-slate-400 font-normal">Optional Snapshot of DMD/LCD</span>
+          </label>
+          
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center gap-3">
+              <label class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-[#1c2336] hover:bg-slate-700 text-xs font-bold text-white rounded-xl border border-dashed border-pinneon-cyan/50 cursor-pointer transition">
+                <i class="fa-solid fa-camera-retro text-pinneon-cyan"></i>
+                <span id="photoButtonLabel">Snap or Upload Photo</span>
+                <input type="file" id="modalScorePhotoInput" accept="image/*" capture="environment" class="hidden" onchange="handleScorePhotoUpload(event)">
+              </label>
+              <button id="modalRemovePhotoBtn" onclick="removeScorePhoto()" class="hidden py-2.5 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold rounded-xl border border-rose-500/30 transition">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+
+            <!-- Image Preview Box -->
+            <div id="modalPhotoPreviewContainer" class="hidden relative rounded-xl overflow-hidden border border-pinneon-border bg-black max-h-48 flex items-center justify-center">
+              <img id="modalPhotoPreviewImg" src="" alt="Score Proof" class="max-h-48 object-contain w-full">
+            </div>
+          </div>
+        </div>
+
+        <!-- Player Notes / Quick Strategy Review -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Hole Notes / Strategy Tip</label>
+          <p id="modalStrategyTip" class="text-xs text-slate-300 bg-[#0e121e] p-3 rounded-xl border border-pinneon-border/70 leading-relaxed italic">
+            "Shoot catapult to start multiball early..."
+          </p>
+        </div>
+      </div>
+
+      <!-- Modal Actions -->
+      <div class="bg-[#111624] p-4 border-t border-pinneon-border flex gap-3">
+        <button onclick="clearCurrentHoleScore()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition">
+          Clear Score
+        </button>
+        <button onclick="saveCurrentHoleScore()" class="flex-1 py-2.5 px-4 bg-gradient-to-r from-pinneon-green to-emerald-500 hover:opacity-90 text-black text-xs font-black rounded-xl shadow-lg transition">
+          Save Scorecard Entry
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: ADD / EDIT HOLE -->
+  <!-- ============================================== -->
+  <div id="holeEditModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#141a29] border border-pinneon-border rounded-2xl w-full max-w-md overflow-hidden shadow-2xl relative my-auto">
+      <div class="bg-gradient-to-r from-[#1b2234] to-[#121622] p-4 border-b border-pinneon-border flex justify-between items-center">
+        <h3 id="holeEditModalTitle" class="text-base font-black text-white">Configure Hole</h3>
+        <button onclick="closeHoleModal()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 text-xs">
+        <input type="hidden" id="editHoleId">
+        
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-1">
+            <label class="block font-semibold text-slate-300 mb-1">Hole #</label>
+            <input type="number" id="editHoleNumber" min="1" max="36" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none">
+          </div>
+          <div class="col-span-1">
+            <label class="block font-semibold text-slate-300 mb-1">Par</label>
+            <input type="number" id="editHolePar" min="1" max="10" value="3" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none">
+          </div>
+          <div class="col-span-1">
+            <label class="block font-semibold text-slate-300 mb-1">Hole Arena</label>
+            <input type="text" id="editHoleArena" placeholder="Area A" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Pinball Machine Name</label>
+          <input type="text" id="editHoleMachine" placeholder="e.g. Godzilla (Stern 2021)" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Target Score or Objective</label>
+          <input type="text" id="editHoleTarget" placeholder="e.g. 50,000,000 or Start Destruction Multiball" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Location Details</label>
+          <input type="text" id="editHoleLocation" placeholder="e.g. Back wall next to Jurassic Park" class="w-full bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Strategy Tip &amp; Key Shots</label>
+          <textarea id="editHoleStrategy" rows="3" placeholder="e.g. Build scoop value then hit right ramp..." class="w-full bg-[#1c2336] rounded-xl p-3 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none"></textarea>
+        </div>
+      </div>
+
+      <div class="bg-[#111624] p-4 border-t border-pinneon-border flex justify-between items-center">
+        <button id="btnDeleteHole" onclick="deleteHole()" class="py-2 px-3 text-rose-400 hover:text-rose-300 font-bold text-xs transition">
+          <i class="fa-solid fa-trash-can mr-1"></i> Delete
+        </button>
+        <div class="flex gap-2">
+          <button onclick="closeHoleModal()" class="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition">
+            Cancel
+          </button>
+          <button onclick="saveHoleEdit()" class="py-2 px-4 bg-pinneon-cyan hover:bg-cyan-400 text-black text-xs font-black rounded-xl transition">
+            Save Hole
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: PLAYER MANAGEMENT -->
+  <!-- ============================================== -->
+  <div id="playerModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#141a29] border border-pinneon-border rounded-2xl w-full max-w-md overflow-hidden shadow-2xl relative my-auto">
+      <div class="bg-gradient-to-r from-[#1b2234] to-[#121622] p-4 border-b border-pinneon-border flex justify-between items-center">
+        <h3 class="text-base font-black text-white flex items-center gap-2">
+          <i class="fa-solid fa-users text-pinneon-yellow"></i> Tournament Roster
+        </h3>
+        <button onclick="closePlayerModal()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <!-- Add Player Input -->
+        <div class="flex gap-2">
+          <input type="text" id="newPlayerNameInput" placeholder="Enter player or initials (e.g. ACE)" class="flex-1 bg-[#1c2336] rounded-xl px-3 py-2 text-white border border-pinneon-border text-sm focus:border-pinneon-cyan focus:outline-none">
+          <button onclick="addNewPlayer()" class="px-4 py-2 bg-pinneon-yellow hover:bg-yellow-400 text-black font-extrabold text-xs rounded-xl transition">
+            Add
+          </button>
+        </div>
+
+        <div class="max-h-60 overflow-y-auto space-y-2 pr-1" id="playersListContainer">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: PLAYER BREAKDOWN & PHOTO INSPECTOR -->
+  <!-- ============================================== -->
+  <div id="breakdownModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#141a29] border border-pinneon-border rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl relative my-auto max-h-[90vh] flex flex-col">
+      <div class="bg-[#1b2234] p-4 border-b border-pinneon-border flex justify-between items-center">
+        <div>
+          <span class="text-xs text-pinneon-yellow font-bold uppercase tracking-wider">Player Detail Audit</span>
+          <h3 id="breakdownPlayerName" class="text-xl font-black text-white">Player</h3>
+        </div>
+        <button onclick="closeBreakdownModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto flex-1 space-y-4" id="breakdownContent">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-[#1c2336] text-white border border-pinneon-cyan px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-pinneon-green"></i>
+    <span id="toastMessage" class="text-xs font-bold">Action successful</span>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    /* ==========================================================================
+       1. INITIAL DATA & PRESETS
+       ========================================================================== */
+    const DEFAULT_CONFIG = {
+      name: "Arcade Masters PinGolf Classic",
+      strokeLimit: 5,
+      defaultPar: 3,
+      holesCounted: "all", // "all", "drop1", "drop2"
+      tiebreaker: true     // true: break with 1s then 2s
+    };
+
+    const DEFAULT_HOLES = [
+      {
+        id: "hole-1",
+        number: 1,
+        machine: "Medieval Madness",
+        arena: "Main Floor - Bay A",
+        location: "Front Left Row #1",
+        target: "15,000,000",
+        par: 3,
+        strategy: "Focus on castle gate hits to lower drawbridge quickly. Catapult shots award clean multi-millions."
+      },
+      {
+        id: "hole-2",
+        number: 2,
+        machine: "Godzilla (Stern)",
+        arena: "Main Floor - Bay A",
+        location: "Front Left Row #2",
+        target: "40,000,000",
+        par: 3,
+        strategy: "Get Godzilla Multiball running via the building shot. Hit scoop to cash in saucers."
+      },
+      {
+        id: "hole-3",
+        number: 3,
+        machine: "Jurassic Park (Stern)",
+        arena: "Main Floor - Bay B",
+        location: "Center Arcade #4",
+        target: "25,000,000",
+        par: 3,
+        strategy: "Capture T-Rex paddock or start Chaos Multiball via the right ramp and amber target."
+      },
+      {
+        id: "hole-4",
+        number: 4,
+        machine: "Attack from Mars",
+        arena: "Main Floor - Bay B",
+        location: "Center Arcade #5",
+        target: "1,500,000,000",
+        par: 3,
+        strategy: "Bash saucer shield consistently to trigger Total Annihilation or destroy your first Saucer."
+      },
+      {
+        id: "hole-5",
+        number: 5,
+        machine: "The Addams Family",
+        arena: "Back Stage Lounge",
+        location: "Lounge Wall #1",
+        target: "20,000,000",
+        par: 3,
+        strategy: "Tour the Mansion rooms. Bear Kicks loop gives clean millions without high risk drain."
+      },
+      {
+        id: "hole-6",
+        number: 6,
+        machine: "Deadpool (Stern)",
+        arena: "Back Stage Lounge",
+        location: "Lounge Wall #2",
+        target: "30,000,000",
+        par: 3,
+        strategy: "Start Juggernaut or Sabretooth battle early. Lil' Deadpool lock triggers high value multiball."
+      },
+      {
+        id: "hole-7",
+        number: 7,
+        machine: "White Water",
+        arena: "Mezzanine Area",
+        location: "Staircase Landing #1",
+        target: "45,000,000",
+        par: 3,
+        strategy: "Master the Insanity Falls ramp and raft advances to qualify Multi-ball rapidly."
+      },
+      {
+        id: "hole-8",
+        number: 8,
+        machine: "Star Wars (Stern)",
+        arena: "Mezzanine Area",
+        location: "Staircase Landing #2",
+        target: "35,000,000",
+        par: 3,
+        strategy: "Choose Han Solo for easy multipliers or Luke. Move 40x multiplier to Hyperspace loop."
+      },
+      {
+        id: "hole-9",
+        number: 9,
+        machine: "Twilight Zone",
+        arena: "Showcase Stage",
+        location: "Center Stage Final",
+        target: "50,000,000",
+        par: 3,
+        strategy: "Load the Gumball machine and target the Piano or Clock Chaos modes for steady point accumulation."
+      }
+    ];
+
+    const DEFAULT_PLAYERS = [
+      { id: "p1", name: "Dave 'Wizard' S." },
+      { id: "p2", name: "Sarah 'Flipper' K." },
+      { id: "p3", name: "Mike 'Multiball' R." },
+      { id: "p4", name: "Alex 'Tilt' T." }
+    ];
+
+    /* ==========================================================================
+       2. STATE & STORAGE MANAGEMENT
+       ========================================================================== */
+    let tournamentConfig = { ...DEFAULT_CONFIG };
+    let courseHoles = [];
+    let players = [];
+    let scoresData = {}; // Format: { [playerId]: { [holeId]: { strokes: 3, finalScore: "...", photo: "data:..." } } }
+    let activePlayerId = null;
+    let selectedHoleForScoring = null;
+    let currentPhotoBase64 = null;
+    let selectedStrokeValue = null;
+
+    function loadState() {
+      try {
+        const storedConfig = localStorage.getItem("pingolf_config");
+        tournamentConfig = storedConfig ? JSON.parse(storedConfig) : DEFAULT_CONFIG;
+
+        const storedHoles = localStorage.getItem("pingolf_holes");
+        courseHoles = storedHoles ? JSON.parse(storedHoles) : DEFAULT_HOLES;
+
+        const storedPlayers = localStorage.getItem("pingolf_players");
+        players = storedPlayers ? JSON.parse(storedPlayers) : DEFAULT_PLAYERS;
+
+        const storedScores = localStorage.getItem("pingolf_scores");
+        scoresData = storedScores ? JSON.parse(storedScores) : {};
+
+        const storedActivePlayer = localStorage.getItem("pingolf_active_player");
+        if (storedActivePlayer && players.some(p => p.id === storedActivePlayer)) {
+          activePlayerId = storedActivePlayer;
+        } else if (players.length > 0) {
+          activePlayerId = players[0].id;
+        }
+      } catch (err) {
+        console.error("Error loading localStorage data:", err);
+        tournamentConfig = { ...DEFAULT_CONFIG };
+        courseHoles = [...DEFAULT_HOLES];
+        players = [...DEFAULT_PLAYERS];
+        scoresData = {};
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem("pingolf_config", JSON.stringify(tournamentConfig));
+        localStorage.setItem("pingolf_holes", JSON.stringify(courseHoles));
+        localStorage.setItem("pingolf_players", JSON.stringify(players));
+        localStorage.setItem("pingolf_scores", JSON.stringify(scoresData));
+        if (activePlayerId) {
+          localStorage.setItem("pingolf_active_player", activePlayerId);
+        }
+      } catch (err) {
+        console.warn("Storage quota may be reached (often due to huge photos):", err);
+        showToast("Storage quota warning. Consider removing large photos.", "warning");
+      }
+    }
+
+    /* ==========================================================================
+       3. NAVIGATION & UI RENDERING
+       ========================================================================== */
+    function switchTab(tabId) {
+      document.querySelectorAll(".nav-tab").forEach(tab => {
+        tab.classList.remove("border-pinneon-cyan", "text-pinneon-cyan");
+        tab.classList.add("border-transparent", "text-slate-400");
+      });
+      const activeBtn = document.getElementById(`tabBtn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.remove("border-transparent", "text-slate-400");
+        activeBtn.classList.add("border-pinneon-cyan", "text-pinneon-cyan");
+      }
+
+      const views = ["scorecard", "leaderboard", "course", "calculator", "settings"];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) {
+          if (v === tabId) {
+            el.classList.remove("hidden");
+          } else {
+            el.classList.add("hidden");
+          }
+        }
+      });
+
+      if (tabId === "leaderboard") renderLeaderboard();
+      if (tabId === "scorecard") renderScorecard();
+      if (tabId === "course") renderCourseList();
+      if (tabId === "settings") populateSettingsInputs();
+      if (tabId === "calculator") populateCalculatorHoles();
+    }
+
+    function showToast(msg, type = "success") {
+      const toast = document.getElementById("toast");
+      const toastMsg = document.getElementById("toastMessage");
+      const toastIcon = document.getElementById("toastIcon");
+
+      toastMsg.innerText = msg;
+      if (type === "warning") {
+        toastIcon.className = "fa-solid fa-triangle-exclamation text-amber-400";
+      } else {
+        toastIcon.className = "fa-solid fa-circle-check text-pinneon-green";
+      }
+
+      toast.classList.remove("translate-y-20", "opacity-0");
+      setTimeout(() => {
+        toast.classList.add("translate-y-20", "opacity-0");
+      }, 3000);
+    }
+
+    function updateHeaderAndPlayerSelect() {
+      document.getElementById("headerTournamentName").innerText = tournamentConfig.name;
+      const select = document.getElementById("activePlayerSelect");
+      select.innerHTML = "";
+
+      players.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.innerText = p.name;
+        if (p.id === activePlayerId) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      select.onchange = (e) => {
+        activePlayerId = e.target.value;
+        saveState();
+        renderScorecard();
+      };
+    }
+
+    /* ==========================================================================
+       4. SCORECARD RENDERING & LOGIC
+       ========================================================================== */
+    function renderScorecard() {
+      const activePlayer = players.find(p => p.id === activePlayerId);
+      const nameEl = document.getElementById("scorecardPlayerName");
+      
+      if (!activePlayer) {
+        nameEl.innerText = "No Player Selected";
+        document.getElementById("holesCardGrid").innerHTML = `
+          <div class="col-span-full text-center py-12 text-slate-500">
+            <i class="fa-solid fa-user-plus text-3xl mb-3"></i>
+            <p>Please add or select a player to record scores.</p>
+          </div>
+        `;
+        return;
+      }
+
+      nameEl.innerText = activePlayer.name;
+
+      const playerScores = scoresData[activePlayerId] || {};
+      const grid = document.getElementById("holesCardGrid");
+      grid.innerHTML = "";
+
+      // Sort holes by hole number
+      const sortedHoles = [...courseHoles].sort((a, b) => a.number - b.number);
+
+      let completedHolesCount = 0;
+      let totalStrokes = 0;
+      let totalPar = 0;
+
+      sortedHoles.forEach(hole => {
+        const entry = playerScores[hole.id];
+        const hasScore = entry && typeof entry.strokes === "number";
+        const par = hole.par || tournamentConfig.defaultPar;
+
+        if (hasScore) {
+          completedHolesCount++;
+          totalStrokes += entry.strokes;
+          totalPar += par;
+        }
+
+        // Relative badge to par
+        let diffBadge = "";
+        let cardBorderClass = "border-pinneon-border";
+        let cardBgClass = "bg-[#141a29]";
+
+        if (hasScore) {
+          const diff = entry.strokes - par;
+          if (entry.strokes === 1) {
+            diffBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-pinneon-yellow/20 text-pinneon-yellow border border-pinneon-yellow/40">HOLE IN ONE!</span>`;
+            cardBorderClass = "border-pinneon-yellow/40 shadow-lg shadow-yellow-500/10";
+          } else if (diff < 0) {
+            diffBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-pinneon-cyan/20 text-pinneon-cyan border border-pinneon-cyan/40">${diff} (Birdie)</span>`;
+          } else if (diff === 0) {
+            diffBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300">Even Par</span>`;
+          } else if (diff > 0) {
+            diffBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40">+${diff}</span>`;
+          }
+        }
+
+        const card = document.createElement("div");
+        card.className = `${cardBgClass} rounded-2xl p-4 border ${cardBorderClass} cursor-pointer hover:border-pinneon-cyan transition relative group flex flex-col justify-between`;
+        card.onclick = () => openScoreModal(hole);
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-[#1c2336] text-white flex items-center justify-center font-black text-xs border border-pinneon-border">
+                  #${hole.number}
+                </span>
+                <div>
+                  <h4 class="font-extrabold text-sm text-white group-hover:text-pinneon-cyan transition leading-tight">${hole.machine}</h4>
+                  <span class="text-[11px] text-slate-400 block">${hole.arena || 'Pin Arena'}</span>
+                </div>
+              </div>
+              <div>${diffBadge}</div>
+            </div>
+
+            <!-- Target & Strategy details -->
+            <div class="mt-3 bg-[#0d111a] rounded-xl p-2.5 border border-pinneon-border/60">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-slate-400 font-medium">Target Score:</span>
+                <span class="font-black text-pinneon-yellow">${hole.target}</span>
+              </div>
+              <div class="flex justify-between items-center text-xs mt-1">
+                <span class="text-slate-400 font-medium">Hole Par:</span>
+                <span class="font-bold text-slate-200">${par}</span>
+              </div>
+            </div>
+
+            ${hole.strategy ? `
+              <p class="mt-2 text-[11px] text-slate-400 line-clamp-2 italic">
+                "${hole.strategy}"
+              </p>
+            ` : ''}
+          </div>
+
+          <!-- Score Footer -->
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-400">Score:</span>
+              ${hasScore ? `
+                <span class="text-xl font-black ${entry.strokes === 1 ? 'text-pinneon-yellow glow-text-yellow' : 'text-white'}">
+                  ${entry.strokes} <span class="text-xs font-normal text-slate-400">strokes</span>
+                </span>
+              ` : `
+                <span class="text-xs text-slate-500 italic">Not played</span>
+              `}
+            </div>
+
+            <div class="flex items-center gap-2">
+              ${entry && entry.photo ? `
+                <span class="w-6 h-6 rounded-md bg-pinneon-cyan/20 text-pinneon-cyan border border-pinneon-cyan/40 flex items-center justify-center text-[11px]" title="Proof Photo Attached">
+                  <i class="fa-solid fa-camera"></i>
+                </span>
+              ` : ''}
+              <button class="px-2.5 py-1 rounded-lg bg-[#1c2336] group-hover:bg-pinneon-cyan group-hover:text-black text-slate-300 text-xs font-bold transition">
+                ${hasScore ? 'Edit' : 'Score'}
+              </button>
+            </div>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+
+      // Update Summary Header Badge
+      document.getElementById("scorecardHolesFinished").innerText = `${completedHolesCount}/${sortedHoles.length} Holes`;
+      document.getElementById("playerTotalStrokes").innerText = totalStrokes;
+
+      const toParEl = document.getElementById("playerToPar");
+      if (completedHolesCount === 0) {
+        toParEl.innerText = "E";
+        toParEl.className = "text-2xl font-black text-slate-400";
+      } else {
+        const net = totalStrokes - totalPar;
+        if (net === 0) {
+          toParEl.innerText = "E";
+          toParEl.className = "text-2xl font-black text-slate-300";
+        } else if (net < 0) {
+          toParEl.innerText = `${net}`;
+          toParEl.className = "text-2xl font-black text-pinneon-cyan";
+        } else {
+          toParEl.innerText = `+${net}`;
+          toParEl.className = "text-2xl font-black text-rose-400";
+        }
+      }
+    }
+
+    /* ==========================================================================
+       5. SCORECARD MODAL & PHOTO UPLOAD LOGIC
+       ========================================================================== */
+    function openScoreModal(hole) {
+      if (!activePlayerId) {
+        showToast("Please pick a player first!", "warning");
+        return;
+      }
+
+      selectedHoleForScoring = hole;
+      document.getElementById("modalHoleBadge").innerText = `HOLE ${hole.number}`;
+      document.getElementById("modalArenaBadge").innerText = hole.arena || 'Pinball Floor';
+      document.getElementById("modalMachineName").innerText = hole.machine;
+      document.getElementById("modalTargetScore").innerText = hole.target;
+      document.getElementById("modalPar").innerText = hole.par || tournamentConfig.defaultPar;
+      document.getElementById("modalStrokeCap").innerText = tournamentConfig.strokeLimit;
+      document.getElementById("modalStrategyTip").innerText = hole.strategy ? `"${hole.strategy}"` : "No special strategy logged.";
+
+      // Load existing score
+      const playerScores = scoresData[activePlayerId] || {};
+      const entry = playerScores[hole.id] || {};
+
+      selectedStrokeValue = typeof entry.strokes === "number" ? entry.strokes : null;
+      document.getElementById("modalFinalScoreInput").value = entry.finalScore || "";
+      currentPhotoBase64 = entry.photo || null;
+
+      // Render Stroke Buttons up to Stroke Limit
+      renderStrokeButtons(tournamentConfig.strokeLimit);
+
+      // Render Photo Preview
+      updatePhotoPreviewUI();
+
+      document.getElementById("scoreModal").classList.remove("hidden");
+    }
+
+    function closeScoreModal() {
+      document.getElementById("scoreModal").classList.add("hidden");
+      selectedHoleForScoring = null;
+      currentPhotoBase64 = null;
+      selectedStrokeValue = null;
+    }
+
+    function renderStrokeButtons(limit) {
+      const container = document.getElementById("strokeButtonsContainer");
+      container.innerHTML = "";
+
+      for (let i = 1; i <= limit; i++) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        const isSelected = selectedStrokeValue === i;
+        const isMax = i === limit;
+
+        btn.className = `touch-target py-2 rounded-xl font-black text-base border transition ${
+          isSelected
+            ? 'bg-pinneon-yellow text-black border-pinneon-yellow glow-box-yellow'
+            : 'bg-[#1c2336] text-white border-pinneon-border hover:border-slate-500'
+        }`;
+
+        btn.innerHTML = `${i}${isMax ? '<span class="block text-[9px] font-bold text-rose-400">MAX</span>' : ''}`;
+        btn.onclick = () => {
+          selectedStrokeValue = i;
+          renderStrokeButtons(limit);
+        };
+        container.appendChild(btn);
+      }
+    }
+
+    function handleScorePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Downscale image to ~800px max width to preserve localStorage quota
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Compress to JPEG format 0.7 quality
+          currentPhotoBase64 = canvas.toDataURL("image/jpeg", 0.7);
+          updatePhotoPreviewUI();
+          showToast("Photo captured!");
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeScorePhoto() {
+      currentPhotoBase64 = null;
+      document.getElementById("modalScorePhotoInput").value = "";
+      updatePhotoPreviewUI();
+    }
+
+    function updatePhotoPreviewUI() {
+      const previewCont = document.getElementById("modalPhotoPreviewContainer");
+      const previewImg = document.getElementById("modalPhotoPreviewImg");
+      const removeBtn = document.getElementById("modalRemovePhotoBtn");
+      const label = document.getElementById("photoButtonLabel");
+
+      if (currentPhotoBase64) {
+        previewImg.src = currentPhotoBase64;
+        previewCont.classList.remove("hidden");
+        removeBtn.classList.remove("hidden");
+        label.innerText = "Replace Photo";
+      } else {
+        previewImg.src = "";
+        previewCont.classList.add("hidden");
+        removeBtn.classList.add("hidden");
+        label.innerText = "Snap or Upload Photo";
+      }
+    }
+
+    function saveCurrentHoleScore() {
+      if (!selectedHoleForScoring || !activePlayerId) return;
+
+      if (selectedStrokeValue === null) {
+        showToast("Please tap a stroke count (1 to max)", "warning");
+        return;
+      }
+
+      if (!scoresData[activePlayerId]) {
+        scoresData[activePlayerId] = {};
+      }
+
+      scoresData[activePlayerId][selectedHoleForScoring.id] = {
+        strokes: selectedStrokeValue,
+        finalScore: document.getElementById("modalFinalScoreInput").value.trim(),
+        photo: currentPhotoBase64,
+        timestamp: new Date().toISOString()
+      };
+
+      saveState();
+      closeScoreModal();
+      renderScorecard();
+      showToast(`Hole ${selectedHoleForScoring.number} score logged!`);
+    }
+
+    function clearCurrentHoleScore() {
+      if (!selectedHoleForScoring || !activePlayerId) return;
+
+      if (scoresData[activePlayerId] && scoresData[activePlayerId][selectedHoleForScoring.id]) {
+        delete scoresData[activePlayerId][selectedHoleForScoring.id];
+        saveState();
+        closeScoreModal();
+        renderScorecard();
+        showToast("Score removed for this hole");
+      } else {
+        closeScoreModal();
+      }
+    }
+
+    /* ==========================================================================
+       6. LEADERBOARD & TIEBREAKER COMPUTATION
+       ========================================================================== */
+    function renderLeaderboard() {
+      const tbody = document.getElementById("leaderboardTbody");
+      tbody.innerHTML = "";
+
+      // Summary label updates
+      document.getElementById("summaryStrokeLimit").innerText = tournamentConfig.strokeLimit;
+      document.getElementById("summaryParDefault").innerText = tournamentConfig.defaultPar;
+      document.getElementById("summaryHolesCounted").innerText = tournamentConfig.holesCounted === "drop1"
+        ? "Drop 1 Worst" : (tournamentConfig.holesCounted === "drop2" ? "Drop 2 Worst" : "All Count");
+
+      // Compute statistics per player
+      const leaderboardData = players.map(player => {
+        const pScores = scoresData[player.id] || {};
+        const holeScores = [];
+        let acesCount = 0;
+        let twosCount = 0;
+        let rawTotalStrokes = 0;
+        let countedPar = 0;
+
+        courseHoles.forEach(h => {
+          const entry = pScores[h.id];
+          const par = h.par || tournamentConfig.defaultPar;
+          if (entry && typeof entry.strokes === "number") {
+            holeScores.push({ holeId: h.id, strokes: entry.strokes, par });
+            rawTotalStrokes += entry.strokes;
+            countedPar += par;
+            if (entry.strokes === 1) acesCount++;
+            if (entry.strokes === 2) twosCount++;
+          }
+        });
+
+        // Handle drop rules if configured
+        let finalStrokes = rawTotalStrokes;
+        if (tournamentConfig.holesCounted === "drop1" && holeScores.length > 1) {
+          const highest = Math.max(...holeScores.map(s => s.strokes));
+          finalStrokes -= highest;
+        } else if (tournamentConfig.holesCounted === "drop2" && holeScores.length > 2) {
+          const sorted = [...holeScores].sort((a, b) => b.strokes - a.strokes);
+          finalStrokes -= (sorted[0].strokes + sorted[1].strokes);
+        }
+
+        const holesThru = holeScores.length;
+        const toPar = finalStrokes - countedPar;
+
+        return {
+          id: player.id,
+          name: player.name,
+          holesThru,
+          finalStrokes,
+          rawTotalStrokes,
+          toPar,
+          acesCount,
+          twosCount,
+          holeScores
+        };
+      });
+
+      // Sorting:
+      // 1. More holes completed is prioritized if in progress, OR by lowest strokes
+      leaderboardData.sort((a, b) => {
+        // Lowest strokes first
+        if (a.finalStrokes !== b.finalStrokes) {
+          return a.finalStrokes - b.finalStrokes;
+        }
+        // Tiebreakers
+        if (tournamentConfig.tiebreaker) {
+          if (b.acesCount !== a.acesCount) return b.acesCount - a.acesCount;
+          if (b.twosCount !== a.twosCount) return b.twosCount - a.twosCount;
+        }
+        return b.holesThru - a.holesThru;
+      });
+
+      if (leaderboardData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-500">No players registered.</td></tr>`;
+        return;
+      }
+
+      leaderboardData.forEach((row, index) => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-[#1c2336]/60 transition";
+
+        // Position Badge
+        let posBadge = `<span class="font-bold text-slate-400">${index + 1}</span>`;
+        if (index === 0 && row.finalStrokes > 0) {
+          posBadge = `<span class="w-6 h-6 rounded-full bg-pinneon-yellow/20 text-pinneon-yellow border border-pinneon-yellow/50 inline-flex items-center justify-center font-black text-xs">1</span>`;
+        } else if (index === 1 && row.finalStrokes > 0) {
+          posBadge = `<span class="w-6 h-6 rounded-full bg-slate-300/20 text-slate-300 border border-slate-300/50 inline-flex items-center justify-center font-black text-xs">2</span>`;
+        } else if (index === 2 && row.finalStrokes > 0) {
+          posBadge = `<span class="w-6 h-6 rounded-full bg-amber-700/30 text-amber-500 border border-amber-600/50 inline-flex items-center justify-center font-black text-xs">3</span>`;
+        }
+
+        // To Par format
+        let toParStr = "E";
+        let toParClass = "text-slate-400";
+        if (row.holesThru > 0) {
+          if (row.toPar < 0) {
+            toParStr = `${row.toPar}`;
+            toParClass = "text-pinneon-cyan font-black";
+          } else if (row.toPar > 0) {
+            toParStr = `+${row.toPar}`;
+            toParClass = "text-rose-400 font-bold";
+          } else {
+            toParStr = "E";
+            toParClass = "text-slate-300 font-bold";
+          }
+        }
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-center">${posBadge}</td>
+          <td class="py-3 px-4 font-bold text-white flex items-center gap-2">
+            <span>${row.name}</span>
+            ${row.id === activePlayerId ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-pinneon-pink/20 text-pinneon-pink border border-pinneon-pink/40">YOU</span>' : ''}
+          </td>
+          <td class="py-3 px-4 text-center font-semibold text-slate-300">${row.holesThru}/${courseHoles.length}</td>
+          <td class="py-3 px-4 text-center ${toParClass}">${toParStr}</td>
+          <td class="py-3 px-4 text-center font-black text-base text-pinneon-yellow">${row.finalStrokes}</td>
+          <td class="py-3 px-4 text-center font-bold text-emerald-400">${row.acesCount}</td>
+          <td class="py-3 px-4 text-center font-medium text-slate-300">${row.twosCount}</td>
+          <td class="py-3 px-4 text-right">
+            <button onclick="viewPlayerAudit('${row.id}')" class="px-2.5 py-1 text-xs rounded-lg bg-[#1c2336] hover:bg-pinneon-cyan hover:text-black font-semibold text-slate-300 transition">
+              <i class="fa-solid fa-list-check mr-1"></i> Audit
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function viewPlayerAudit(playerId) {
+      const player = players.find(p => p.id === playerId);
+      if (!player) return;
+
+      document.getElementById("breakdownPlayerName").innerText = `${player.name}'s Tournament Log`;
+      const container = document.getElementById("breakdownContent");
+      container.innerHTML = "";
+
+      const pScores = scoresData[playerId] || {};
+      const sortedHoles = [...courseHoles].sort((a, b) => a.number - b.number);
+
+      if (sortedHoles.length === 0) {
+        container.innerHTML = `<p class="text-slate-400 text-sm">No course holes found.</p>`;
+      }
+
+      sortedHoles.forEach(h => {
+        const entry = pScores[h.id];
+        const hasScore = entry && typeof entry.strokes === "number";
+
+        const div = document.createElement("div");
+        div.className = "bg-[#0e121e] rounded-xl p-4 border border-pinneon-border flex flex-col md:flex-row justify-between gap-4";
+
+        div.innerHTML = `
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-slate-800 text-pinneon-cyan text-xs font-black">Hole ${h.number}</span>
+              <span class="font-bold text-white">${h.machine}</span>
+            </div>
+            <div class="text-xs text-slate-400 mt-1">
+              Target: <strong class="text-pinneon-yellow">${h.target}</strong> | Par: <strong>${h.par || 3}</strong>
+            </div>
+            ${entry && entry.finalScore ? `
+              <div class="text-xs text-slate-300 mt-1">
+                Actual Score Logged: <strong class="text-pinneon-green">${Number(entry.finalScore).toLocaleString()}</strong>
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="flex items-center gap-4">
+            <div class="text-right">
+              <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Strokes</span>
+              <span class="text-2xl font-black ${hasScore && entry.strokes === 1 ? 'text-pinneon-yellow glow-text-yellow' : 'text-white'}">
+                ${hasScore ? entry.strokes : '-'}
+              </span>
+            </div>
+
+            ${entry && entry.photo ? `
+              <div class="cursor-pointer" onclick="openPhotoModal('${entry.photo}')">
+                <img src="${entry.photo}" class="w-16 h-16 object-cover rounded-lg border border-pinneon-cyan/50 hover:opacity-80 transition" alt="Score Proof">
+                <span class="text-[9px] text-pinneon-cyan block text-center mt-0.5"><i class="fa-solid fa-expand"></i> View</span>
+              </div>
+            ` : `
+              <div class="w-16 h-16 rounded-lg bg-[#141a29] border border-slate-800 flex items-center justify-center text-slate-600 text-xs text-center p-1">
+                No Photo
+              </div>
+            `}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      document.getElementById("breakdownModal").classList.remove("hidden");
+    }
+
+    function closeBreakdownModal() {
+      document.getElementById("breakdownModal").classList.add("hidden");
+    }
+
+    function openPhotoModal(imgSrc) {
+      const viewer = window.open("");
+      viewer.document.write(`<body style="margin:0;background:#05070c;display:flex;align-items:center;justify-content:center;height:100vh;"><img src="${imgSrc}" style="max-width:95%;max-height:95%;border-radius:12px;box-shadow:0 0 30px rgba(0,240,255,0.3)"/></body>`);
+    }
+
+    /* ==========================================================================
+       7. THE COURSE & HOLE EDITING
+       ========================================================================== */
+    function renderCourseList() {
+      const list = document.getElementById("courseHolesList");
+      list.innerHTML = "";
+
+      const sortedHoles = [...courseHoles].sort((a, b) => a.number - b.number);
+
+      if (sortedHoles.length === 0) {
+        list.innerHTML = `
+          <div class="text-center py-12 text-slate-500 bg-[#141a29] rounded-2xl border border-pinneon-border">
+            <i class="fa-solid fa-flag text-3xl mb-3"></i>
+            <p>No holes created yet. Click "Add New Hole" above.</p>
+          </div>
+        `;
+        return;
+      }
+
+      sortedHoles.forEach(hole => {
+        const item = document.createElement("div");
+        item.className = "bg-[#141a29] rounded-2xl p-4 sm:p-5 border border-pinneon-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-pinneon-border/90 transition";
+
+        item.innerHTML = `
+          <div class="flex items-start gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-[#1c2336] border border-pinneon-border flex items-center justify-center text-pinneon-yellow font-black text-sm shrink-0">
+              #${hole.number}
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h4 class="font-black text-lg text-white">${hole.machine}</h4>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-semibold">${hole.arena || 'Area'}</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-pinneon-cyan/10 text-pinneon-cyan font-bold border border-pinneon-cyan/30">Par ${hole.par || 3}</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-location-dot text-slate-500 mr-1"></i> ${hole.location || 'Floor'}</p>
+              ${hole.strategy ? `<p class="text-xs text-slate-300 mt-2 italic bg-[#0e121e] p-2 rounded-lg border border-slate-800">"${hole.strategy}"</p>` : ''}
+            </div>
+          </div>
+
+          <div class="flex sm:flex-col items-end justify-between w-full sm:w-auto gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-800">
+            <div class="text-left sm:text-right">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Target Score</span>
+              <span class="text-lg font-black text-pinneon-yellow">${hole.target}</span>
+            </div>
+            <button onclick="openHoleModal('${hole.id}')" class="px-3 py-1.5 rounded-xl bg-[#1c2336] hover:bg-pinneon-cyan hover:text-black text-xs font-bold text-slate-300 transition">
+              <i class="fa-solid fa-pen-to-square mr-1"></i> Configure
+            </button>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function openHoleModal(holeId) {
+      const modal = document.getElementById("holeEditModal");
+      const title = document.getElementById("holeEditModalTitle");
+      const deleteBtn = document.getElementById("btnDeleteHole");
+
+      if (holeId) {
+        const hole = courseHoles.find(h => h.id === holeId);
+        if (!hole) return;
+        title.innerText = `Edit Hole #${hole.number}`;
+        document.getElementById("editHoleId").value = hole.id;
+        document.getElementById("editHoleNumber").value = hole.number;
+        document.getElementById("editHolePar").value = hole.par || 3;
+        document.getElementById("editHoleArena").value = hole.arena || "";
+        document.getElementById("editHoleMachine").value = hole.machine || "";
+        document.getElementById("editHoleTarget").value = hole.target || "";
+        document.getElementById("editHoleLocation").value = hole.location || "";
+        document.getElementById("editHoleStrategy").value = hole.strategy || "";
+        deleteBtn.classList.remove("hidden");
+      } else {
+        title.innerText = "Add New Tournament Hole";
+        document.getElementById("editHoleId").value = "";
+        document.getElementById("editHoleNumber").value = courseHoles.length + 1;
+        document.getElementById("editHolePar").value = tournamentConfig.defaultPar;
+        document.getElementById("editHoleArena").value = "";
+        document.getElementById("editHoleMachine").value = "";
+        document.getElementById("editHoleTarget").value = "10,000,000";
+        document.getElementById("editHoleLocation").value = "";
+        document.getElementById("editHoleStrategy").value = "";
+        deleteBtn.classList.add("hidden");
+      }
+
+      modal.classList.remove("hidden");
+    }
+
+    function closeHoleModal() {
+      document.getElementById("holeEditModal").classList.add("hidden");
+    }
+
+    function saveHoleEdit() {
+      const holeId = document.getElementById("editHoleId").value;
+      const number = parseInt(document.getElementById("editHoleNumber").value, 10) || 1;
+      const par = parseInt(document.getElementById("editHolePar").value, 10) || 3;
+      const arena = document.getElementById("editHoleArena").value.trim();
+      const machine = document.getElementById("editHoleMachine").value.trim() || `Pinball #${number}`;
+      const target = document.getElementById("editHoleTarget").value.trim() || "10,000,000";
+      const location = document.getElementById("editHoleLocation").value.trim();
+      const strategy = document.getElementById("editHoleStrategy").value.trim();
+
+      if (holeId) {
+        // Edit existing
+        const idx = courseHoles.findIndex(h => h.id === holeId);
+        if (idx !== -1) {
+          courseHoles[idx] = { ...courseHoles[idx], number, par, arena, machine, target, location, strategy };
+        }
+      } else {
+        // Create new
+        const newHole = {
+          id: `hole-${Date.now()}`,
+          number,
+          par,
+          arena,
+          machine,
+          target,
+          location,
+          strategy
+        };
+        courseHoles.push(newHole);
+      }
+
+      saveState();
+      closeHoleModal();
+      renderCourseList();
+      populateCalculatorHoles();
+      showToast("Hole details saved!");
+    }
+
+    function deleteHole() {
+      const holeId = document.getElementById("editHoleId").value;
+      if (!holeId) return;
+
+      courseHoles = courseHoles.filter(h => h.id !== holeId);
+      saveState();
+      closeHoleModal();
+      renderCourseList();
+      populateCalculatorHoles();
+      showToast("Hole deleted");
+    }
+
+    /* ==========================================================================
+       8. DAVE STEWART CALCULATOR LOGIC
+       ========================================================================== */
+    function calculateTargetScore() {
+      const p1 = parseFloat(document.getElementById("calcP1").value) || 0;
+      const p2 = parseFloat(document.getElementById("calcP2").value) || 0;
+      const p3 = parseFloat(document.getElementById("calcP3").value) || 0;
+
+      const rawAvg = (p1 + p2 + p3) / 3;
+      const cadence = document.querySelector('input[name="calcCadence"]:checked').value;
+
+      let adjusted = rawAvg;
+      let label = "Pure Average (Standard Cadence)";
+
+      if (cadence === "4p") {
+        adjusted = rawAvg * 0.8; // Cut off 20%
+        label = "-20% (Fast 4-Player Cadence)";
+      } else if (cadence === "2p") {
+        adjusted = rawAvg * 1.2; // Add 20%
+        label = "+20% (2-Player Extended)";
+      }
+
+      // Round to a score with lots of zeros (round to nearest magnitude)
+      const rounded = roundToLotsOfZeros(adjusted);
+
+      document.getElementById("calcResultRounded").innerText = rounded.toLocaleString();
+      document.getElementById("calcResultRaw").innerText = `Raw Calculated: ${Math.round(adjusted).toLocaleString()}`;
+      document.getElementById("calcAvgScore").innerText = Math.round(rawAvg).toLocaleString();
+      document.getElementById("calcAdjustmentLabel").innerText = label;
+    }
+
+    function roundToLotsOfZeros(num) {
+      if (num <= 0) return 0;
+      const magnitude = Math.pow(10, Math.floor(Math.log10(num)));
+      // If magnitude is above 10,000, round to 1 or 2 sig figs
+      const factor = magnitude >= 1000000 ? (magnitude / 2) : magnitude;
+      return Math.round(num / factor) * factor;
+    }
+
+    function populateCalculatorHoles() {
+      const select = document.getElementById("calcApplyToHoleSelect");
+      if (!select) return;
+      select.innerHTML = "";
+      courseHoles.forEach(h => {
+        const opt = document.createElement("option");
+        opt.value = h.id;
+        opt.innerText = `Hole ${h.number}: ${h.machine}`;
+        select.appendChild(opt);
+      });
+    }
+
+    function applyCalculatedTarget() {
+      const select = document.getElementById("calcApplyToHoleSelect");
+      const targetStr = document.getElementById("calcResultRounded").innerText;
+      const holeId = select.value;
+
+      const hole = courseHoles.find(h => h.id === holeId);
+      if (hole) {
+        hole.target = targetStr;
+        saveState();
+        showToast(`Target score ${targetStr} applied to Hole ${hole.number}!`);
+      }
+    }
+
+    /* ==========================================================================
+       9. PLAYER ROSTER MODAL
+       ========================================================================== */
+    function openPlayerModal() {
+      renderPlayerRosterList();
+      document.getElementById("playerModal").classList.remove("hidden");
+    }
+
+    function closePlayerModal() {
+      document.getElementById("playerModal").classList.add("hidden");
+    }
+
+    function renderPlayerRosterList() {
+      const list = document.getElementById("playersListContainer");
+      list.innerHTML = "";
+
+      players.forEach(p => {
+        const row = document.createElement("div");
+        row.className = "flex items-center justify-between p-2.5 rounded-xl bg-[#1c2336] border border-pinneon-border";
+        row.innerHTML = `
+          <span class="text-sm font-bold text-white">${p.name}</span>
+          <div class="flex items-center gap-2">
+            <button onclick="selectPlayerFromList('${p.id}')" class="px-2.5 py-1 text-xs rounded-lg ${p.id === activePlayerId ? 'bg-pinneon-yellow text-black font-extrabold' : 'bg-slate-700 text-slate-300'} transition">
+              ${p.id === activePlayerId ? 'Active' : 'Select'}
+            </button>
+            <button onclick="removePlayer('${p.id}')" class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 flex items-center justify-center transition">
+              <i class="fa-solid fa-trash-can text-xs"></i>
+            </button>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function addNewPlayer() {
+      const input = document.getElementById("newPlayerNameInput");
+      const name = input.value.trim();
+      if (!name) return;
+
+      const newPlayer = {
+        id: `p-${Date.now()}`,
+        name: name
+      };
+
+      players.push(newPlayer);
+      activePlayerId = newPlayer.id;
+      input.value = "";
+      saveState();
+      updateHeaderAndPlayerSelect();
+      renderPlayerRosterList();
+      renderScorecard();
+      showToast(`Added player "${name}"`);
+    }
+
+    function selectPlayerFromList(pId) {
+      activePlayerId = pId;
+      saveState();
+      updateHeaderAndPlayerSelect();
+      renderPlayerRosterList();
+      renderScorecard();
+      closePlayerModal();
+    }
+
+    function removePlayer(pId) {
+      if (players.length <= 1) {
+        showToast("Must have at least one player in tournament", "warning");
+        return;
+      }
+
+      players = players.filter(p => p.id !== pId);
+      if (scoresData[pId]) delete scoresData[pId];
+
+      if (activePlayerId === pId) {
+        activePlayerId = players[0].id;
+      }
+
+      saveState();
+      updateHeaderAndPlayerSelect();
+      renderPlayerRosterList();
+      renderScorecard();
+      showToast("Player removed");
+    }
+
+    /* ==========================================================================
+       10. SETTINGS & RULES CONFIGURATION
+       ========================================================================== */
+    function populateSettingsInputs() {
+      document.getElementById("configTourName").value = tournamentConfig.name;
+      document.getElementById("configStrokeLimit").value = tournamentConfig.strokeLimit;
+      document.getElementById("configDefaultPar").value = tournamentConfig.defaultPar;
+      document.getElementById("configHolesCounted").value = tournamentConfig.holesCounted;
+      document.getElementById("configTiebreaker").value = tournamentConfig.tiebreaker ? "true" : "false";
+    }
+
+    function saveTournamentConfig() {
+      tournamentConfig.name = document.getElementById("configTourName").value.trim() || "Pingolf Tour";
+      tournamentConfig.strokeLimit = parseInt(document.getElementById("configStrokeLimit").value, 10) || 5;
+      tournamentConfig.defaultPar = parseInt(document.getElementById("configDefaultPar").value, 10) || 3;
+      tournamentConfig.holesCounted = document.getElementById("configHolesCounted").value;
+      tournamentConfig.tiebreaker = document.getElementById("configTiebreaker").value === "true";
+
+      saveState();
+      updateHeaderAndPlayerSelect();
+      renderScorecard();
+      showToast("Tournament rules saved successfully!");
+    }
+
+    function resetAllScoresOnly() {
+      scoresData = {};
+      saveState();
+      renderScorecard();
+      renderLeaderboard();
+      showToast("All player scores have been cleared for a fresh round!");
+    }
+
+    function restoreDefaults() {
+      tournamentConfig = { ...DEFAULT_CONFIG };
+      courseHoles = [...DEFAULT_HOLES];
+      saveState();
+      updateHeaderAndPlayerSelect();
+      renderScorecard();
+      renderCourseList();
+      populateCalculatorHoles();
+      showToast("Preset 9-hole course reloaded!");
+    }
+
+    function wipeAllData() {
+      tournamentConfig = { ...DEFAULT_CONFIG };
+      courseHoles = [...DEFAULT_HOLES];
+      players = [...DEFAULT_PLAYERS];
+      scoresData = {};
+      activePlayerId = players[0].id;
+      saveState();
+      updateHeaderAndPlayerSelect();
+      renderScorecard();
+      renderCourseList();
+      showToast("Factory reset complete!");
+    }
+
+    function exportTournamentData() {
+      const payload = {
+        config: tournamentConfig,
+        holes: courseHoles,
+        players: players,
+        scores: scoresData,
+        exportedAt: new Date().toISOString()
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+      const downloadAnchor = document.createElement("a");
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `pingolf-tour-${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("Export JSON generated!");
+    }
+
+    /* ==========================================================================
+       11. INITIALIZATION ON WINDOW LOAD
+       ========================================================================== */
+    window.onload = function() {
+      loadState();
+      updateHeaderAndPlayerSelect();
+      renderScorecard();
+      populateCalculatorHoles();
+      calculateTargetScore();
+    };
+  </script>
+</body>
+</html>
