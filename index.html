@@ -20,10 +20,8 @@
     .font-arcade { font-family: 'Orbitron', monospace; }
     .font-header { font-family: 'Chakra Petch', sans-serif; }
     
-    /* Neon Glow Effects */
     .glow-cyan { text-shadow: 0 0 10px rgba(6, 182, 212, 0.7), 0 0 20px rgba(6, 182, 212, 0.4); }
     .glow-amber { text-shadow: 0 0 10px rgba(245, 158, 11, 0.7), 0 0 20px rgba(245, 158, 11, 0.4); }
-    .glow-magenta { text-shadow: 0 0 10px rgba(236, 72, 153, 0.7), 0 0 20px rgba(236, 72, 153, 0.4); }
     
     .panel-arcade {
       background: linear-gradient(135deg, rgba(22, 27, 46, 0.85) 0%, rgba(13, 17, 30, 0.95) 100%);
@@ -36,7 +34,6 @@
       box-shadow: 0 0 15px rgba(6, 182, 212, 0.15), inset 0 0 15px rgba(6, 182, 212, 0.05);
     }
     
-    /* Subtle scanline overlay */
     .scanlines {
       background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
       background-size: 100% 4px;
@@ -117,9 +114,7 @@
         </button>
       </div>
 
-      <div id="holesList" class="space-y-3">
-        <!-- Injected via JavaScript -->
-      </div>
+      <div id="holesList" class="space-y-3"></div>
     </section>
 
     <!-- TAB 2: STANDINGS -->
@@ -128,7 +123,7 @@
         <div class="flex justify-between items-center mb-4">
           <div>
             <h2 class="text-lg font-arcade font-bold text-cyan-400 glow-cyan">TOURNAMENT STANDINGS</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Fewest total strokes wins • Auto tiebreaker active</p>
+            <p id="leaderboardSubheader" class="text-xs text-slate-400 mt-0.5">Leaderboard for current event</p>
           </div>
           <span class="text-[11px] font-mono bg-slate-900 border border-slate-700/80 px-2.5 py-1 rounded-full text-slate-300">
             Aces &gt; 2s
@@ -161,12 +156,10 @@
       <div class="flex justify-between items-center px-1">
         <div>
           <h2 class="text-lg font-arcade font-bold text-amber-400 glow-amber">VERIFIED PROOFS</h2>
-          <p class="text-xs text-slate-400">Player submitted DMD & LCD backbox snapshots</p>
+          <p id="proofsSubheader" class="text-xs text-slate-400">Score proofs for this tournament only</p>
         </div>
       </div>
-      <div id="auditGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-        <!-- Photo Cards -->
-      </div>
+      <div id="auditGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
     </section>
 
   </main>
@@ -256,7 +249,7 @@
     <div class="panel-arcade border border-cyan-800 rounded-3xl w-full max-w-md p-6 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center">
         <div>
-          <h3 class="text-base font-arcade font-bold text-cyan-400 glow-cyan">TOURNAMENTS & LOCATIONS</h3>
+          <h3 class="text-base font-arcade font-bold text-cyan-400 glow-cyan">TOURNAMENTS & VENUES</h3>
           <p class="text-xs text-slate-400 mt-0.5">Switch active venue or start a new tournament</p>
         </div>
         <button id="btnCloseTourneyModal" class="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center">
@@ -265,10 +258,8 @@
       </div>
 
       <div>
-        <label class="block text-xs font-header uppercase text-slate-400 font-bold mb-1">Select Tournament</label>
-        <div id="tourneyListContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-          <!-- Populated dynamically -->
-        </div>
+        <label class="block text-xs font-header uppercase text-slate-400 font-bold mb-1">Select Active Event</label>
+        <div id="tourneyListContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
       </div>
 
       <div class="relative flex py-1 items-center">
@@ -351,20 +342,20 @@
     };
 
     const DEFAULT_HOLES_TEMPLATE = [
-      { id: 1, title: 'Godzilla Premium', location: 'Arena 1', target_score: 15000000, par: 3, notes: 'Focus on Mechagodzilla multiball and destruction jackpots.' },
-      { id: 2, title: 'Jurassic Park', location: 'Arena 2', target_score: 25000000, par: 3, notes: 'Capture dinosaurs; start T-Rex multiball early.' },
-      { id: 3, title: 'Medieval Madness', location: 'Arena 3', target_score: 12000000, par: 3, notes: 'Destroy the castle gates; lock balls for Castle Multiball.' },
-      { id: 4, title: 'Attack from Mars', location: 'Arena 4', target_score: 300000000, par: 3, notes: 'Focus center shield knockdowns and Total Annihilation.' },
-      { id: 5, title: 'Iron Maiden', location: 'Arena 5', target_score: 20000000, par: 3, notes: 'Loop orbits to light lock and Trooper Multiball.' },
-      { id: 6, title: 'Deadpool Pro', location: 'Arena 6', target_score: 18000000, par: 3, notes: 'Team up with Colossus and battle Juggernaut.' },
-      { id: 7, title: 'Transformers MTMTE', location: 'Arena 7', target_score: 10000000, par: 3, notes: 'Decepticon battles and Matrix ramp multiball.' },
-      { id: 8, title: 'The Addams Family', location: 'Arena 8', target_score: 40000000, par: 3, notes: 'Bear kicks to tour the mansion and quick multiball.' },
-      { id: 9, title: 'Firepower', location: 'Arena 9', target_score: 250000, par: 3, notes: 'Classic 1980 solid state; light 1-2-3-4-5-6 and lock 3 balls.' }
+      { id: 1, title: 'Godzilla Premium', location: 'Hole 1', target_score: 15000000, par: 3, notes: 'Focus on Mechagodzilla multiball and destruction jackpots.' },
+      { id: 2, title: 'Jurassic Park', location: 'Hole 2', target_score: 25000000, par: 3, notes: 'Capture dinosaurs; start T-Rex multiball early.' },
+      { id: 3, title: 'Medieval Madness', location: 'Hole 3', target_score: 12000000, par: 3, notes: 'Destroy the castle gates; lock balls for Castle Multiball.' },
+      { id: 4, title: 'Attack from Mars', location: 'Hole 4', target_score: 300000000, par: 3, notes: 'Focus center shield knockdowns and Total Annihilation.' },
+      { id: 5, title: 'Iron Maiden', location: 'Hole 5', target_score: 20000000, par: 3, notes: 'Loop orbits to light lock and Trooper Multiball.' },
+      { id: 6, title: 'Deadpool Pro', location: 'Hole 6', target_score: 18000000, par: 3, notes: 'Team up with Colossus and battle Juggernaut.' },
+      { id: 7, title: 'Transformers MTMTE', location: 'Hole 7', target_score: 10000000, par: 3, notes: 'Decepticon battles and Matrix ramp multiball.' },
+      { id: 8, title: 'The Addams Family', location: 'Hole 8', target_score: 40000000, par: 3, notes: 'Bear kicks to tour the mansion and quick multiball.' },
+      { id: 9, title: 'Firepower', location: 'Hole 9', target_score: 250000, par: 3, notes: 'Classic 1980 solid state; light 1-2-3-4-5-6 and lock 3 balls.' }
     ];
 
     let allTournaments = [];
     let currentTournament = null;
-    let allHoles = [...DEFAULT_HOLES_TEMPLATE];
+    let allHoles = [];
     let allPlayers = [];
     let allScores = [];
     let currentPlayer = null;
@@ -437,8 +428,12 @@
 
     function updateTourneyHeader() {
       const lbl = document.getElementById('labelCurrentTourney');
+      const leadSub = document.getElementById('leaderboardSubheader');
+      const proofSub = document.getElementById('proofsSubheader');
       if (currentTournament) {
-        lbl.innerText = `${currentTournament.title} (${currentTournament.location})`;
+        lbl.innerText = `${currentTournament.title}`;
+        leadSub.innerText = `${currentTournament.title} • ${currentTournament.location}`;
+        proofSub.innerText = `Verified captures for ${currentTournament.title}`;
       } else {
         lbl.innerText = 'Select Venue';
       }
@@ -489,9 +484,11 @@
         const res = await dbPost('tournaments', [{ title, location }]);
         const newTourney = res[0];
         
-        // Seed holes for this new tournament
-        const seededHoles = DEFAULT_HOLES_TEMPLATE.map(h => ({
+        // Seed standard 9 holes with unique IDs for this tournament
+        const offset = Date.now() % 100000;
+        const seededHoles = DEFAULT_HOLES_TEMPLATE.map((h, i) => ({
           ...h,
+          id: offset + i + 1,
           tournament_id: newTourney.id
         }));
         await dbPost('holes', seededHoles);
@@ -512,7 +509,7 @@
 
       const playerScores = currentPlayer ? allScores.filter(s => s.player_id === currentPlayer.id) : [];
 
-      allHoles.forEach(hole => {
+      allHoles.forEach((hole, index) => {
         const recorded = playerScores.find(s => s.hole_id === hole.id);
         const card = document.createElement('div');
         card.className = `panel-arcade p-4 sm:p-5 rounded-2xl border transition duration-200 ${recorded ? 'panel-active' : ''}`;
@@ -533,7 +530,7 @@
           <div class="flex items-start justify-between">
             <div>
               <div class="flex items-center space-x-2">
-                <span class="text-[10px] font-arcade font-bold text-amber-400 bg-amber-950/70 border border-amber-700/50 px-2 py-0.5 rounded">HOLE ${hole.id}</span>
+                <span class="text-[10px] font-arcade font-bold text-amber-400 bg-amber-950/70 border border-amber-700/50 px-2 py-0.5 rounded">HOLE ${index + 1}</span>
                 <span class="text-xs font-mono text-slate-400">${hole.location || ''}</span>
               </div>
               <h3 class="text-lg font-header font-bold text-white mt-1.5">${hole.title}</h3>
@@ -549,7 +546,7 @@
               <span class="text-slate-400 text-[11px] uppercase tracking-wider">Target:</span>
               <strong class="font-arcade text-cyan-400 text-sm ml-1 glow-cyan">${Number(hole.target_score).toLocaleString()}</strong>
             </div>
-            <button class="hole-play-btn px-4 py-2 rounded-xl font-header font-bold transition flex items-center space-x-1.5 ${recorded ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700' : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 shadow-md shadow-cyan-500/20'}" data-hole="${hole.id}">
+            <button class="hole-play-btn px-4 py-2 rounded-xl font-header font-bold transition flex items-center space-x-1.5 ${recorded ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700' : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 shadow-md shadow-cyan-500/20'}" data-hole="${hole.id}" data-index="${index + 1}">
               <i class="fa-solid ${recorded ? 'fa-pen-to-square' : 'fa-play'} text-xs"></i>
               <span>${recorded ? 'EDIT SCORE' : 'PLAY HOLE'}</span>
             </button>
@@ -561,7 +558,8 @@
       container.querySelectorAll('.hole-play-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const hid = parseInt(e.currentTarget.getAttribute('data-hole'), 10);
-          openScoreModal(hid);
+          const hidx = parseInt(e.currentTarget.getAttribute('data-index'), 10);
+          openScoreModal(hid, hidx);
         });
       });
     }
@@ -583,7 +581,7 @@
       }
     }
 
-    function openScoreModal(holeId) {
+    function openScoreModal(holeId, displayHoleNum) {
       if (!currentPlayer) {
         toggleModal('playerModal');
         return;
@@ -592,7 +590,7 @@
       activeModalHole = allHoles.find(h => h.id === holeId);
       if (!activeModalHole) return;
 
-      document.getElementById('modalHoleBadge').innerText = `HOLE ${activeModalHole.id}`;
+      document.getElementById('modalHoleBadge').innerText = `HOLE ${displayHoleNum || activeModalHole.id}`;
       document.getElementById('modalParBadge').innerText = `PAR ${activeModalHole.par || 3}`;
       document.getElementById('modalMachineTitle').innerText = activeModalHole.title;
       document.getElementById('modalTargetScore').innerText = `TARGET: ${Number(activeModalHole.target_score).toLocaleString()} PTS`;
@@ -675,10 +673,12 @@
     function renderAuditGallery() {
       const grid = document.getElementById('auditGrid');
       if (!grid) return;
+      
+      // Strict tournament-scoped photo proofs
       const proofScores = allScores.filter(s => s.photo_url);
 
       if (proofScores.length === 0) {
-        grid.innerHTML = `<div class="col-span-full panel-arcade rounded-2xl text-center py-12 text-slate-500 font-sans">No score proof images uploaded yet.</div>`;
+        grid.innerHTML = `<div class="col-span-full panel-arcade rounded-2xl text-center py-12 text-slate-500 font-sans">No score proofs uploaded for ${currentTournament ? currentTournament.title : 'this event'}.</div>`;
         return;
       }
 
@@ -701,9 +701,9 @@
           <div class="p-3.5 bg-[#0d101d]/90">
             <div class="flex justify-between items-center text-xs">
               <span class="font-arcade font-bold text-amber-400 glow-amber">${playerName}</span>
-              <span class="font-arcade text-cyan-300 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800/80">${s.strokes} STROKES</span>
+              <span class="font-arcade text-cyan-300 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800/80">${s.strokes} STROKE${s.strokes > 1 ? 'S' : ''}</span>
             </div>
-            <div class="text-xs font-header text-slate-200 mt-1 font-semibold">${hole ? hole.title : `Hole ${s.hole_id}`}</div>
+            <div class="text-xs font-header text-slate-200 mt-1 font-semibold">${hole ? hole.title : 'Pinball Machine'}</div>
           </div>
         `;
         grid.appendChild(card);
@@ -747,16 +747,15 @@
     async function syncData() {
       try {
         // Fetch tournaments
-        try {
-          const tourneyData = await dbGet('tournaments?select=*&order=created_at.desc');
-          if (tourneyData && tourneyData.length > 0) {
-            allTournaments = tourneyData;
-            const savedTourneyId = localStorage.getItem('pingolf_active_tourney_id');
-            currentTournament = allTournaments.find(t => t.id === savedTourneyId) || allTournaments[0];
-            updateTourneyHeader();
-          }
-        } catch (e) {
-          console.log('Using default tourney context');
+        const tourneyData = await dbGet('tournaments?select=*&order=created_at.desc');
+        if (tourneyData && tourneyData.length > 0) {
+          allTournaments = tourneyData;
+          const savedTourneyId = localStorage.getItem('pingolf_active_tourney_id');
+          // Prefer Bellbrook Greens 2026 if present or saved
+          currentTournament = allTournaments.find(t => t.id === savedTourneyId) 
+            || allTournaments.find(t => t.title.includes('Bellbrook')) 
+            || allTournaments[0];
+          updateTourneyHeader();
         }
 
         // Fetch players
@@ -772,23 +771,21 @@
           dropdown.appendChild(opt);
         });
 
-        // Fetch holes for current tournament
-        try {
-          const holeFilter = currentTournament ? `tournament_id=eq.${currentTournament.id}&` : '';
-          const holesData = await dbGet(`holes?${holeFilter}select=*&order=id.asc`);
-          if (holesData && holesData.length > 0) {
-            allHoles = holesData;
-          } else {
-            allHoles = [...DEFAULT_HOLES_TEMPLATE];
-          }
-        } catch (e) {
+        // Fetch holes strictly for current tournament
+        if (currentTournament) {
+          const holesData = await dbGet(`holes?tournament_id=eq.${currentTournament.id}&select=*&order=id.asc`);
+          allHoles = (holesData && holesData.length > 0) ? holesData : [...DEFAULT_HOLES_TEMPLATE];
+        } else {
           allHoles = [...DEFAULT_HOLES_TEMPLATE];
         }
 
-        // Fetch scores for current tournament
-        const scoreFilter = currentTournament ? `tournament_id=eq.${currentTournament.id}&` : '';
-        const scoresData = await dbGet(`scores?${scoreFilter}select=*`);
-        allScores = scoresData || [];
+        // Fetch scores strictly for current tournament
+        if (currentTournament) {
+          const scoresData = await dbGet(`scores?tournament_id=eq.${currentTournament.id}&select=*`);
+          allScores = scoresData || [];
+        } else {
+          allScores = [];
+        }
 
         renderScorecard();
         renderLeaderboard();
@@ -822,7 +819,7 @@
 
       const saveBtn = document.getElementById('saveScoreBtn');
       saveBtn.disabled = true;
-      saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> SYNCING...`;
+      saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> RECORDING...`;
 
       let photoUrl = null;
 
@@ -844,102 +841,4 @@
         }
 
         const numVal = document.getElementById('inputActualScore').value;
-        const actualScore = numVal ? parseInt(numVal, 10) : null;
-
-        const record = {
-          player_id: currentPlayer.id,
-          hole_id: activeModalHole.id,
-          tournament_id: currentTournament ? currentTournament.id : null,
-          strokes: selectedStrokes,
-          actual_score: actualScore,
-          updated_at: new Date().toISOString()
-        };
-        if (photoUrl) record.photo_url = photoUrl;
-
-        await dbUpsert('scores', [record]);
-        toggleModal('scoreModal');
-        await syncData();
-      } catch (err) {
-        alert('Could not save score: ' + err.message);
-      } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up mr-2"></i> RECORD SCORE`;
-      }
-    }
-
-    function calculateDaveStewart() {
-      const p1 = parseFloat(document.getElementById('calcP1').value) || 0;
-      const p2 = parseFloat(document.getElementById('calcP2').value) || 0;
-      const p3 = parseFloat(document.getElementById('calcP3').value) || 0;
-      const cadence = document.getElementById('calcCadence').value;
-
-      if (!p1 && !p2 && !p3) return alert('Enter at least one player score.');
-
-      const valid = [p1, p2, p3].filter(v => v > 0);
-      let avg = valid.reduce((a, b) => a + b, 0) / valid.length;
-
-      if (cadence === '4player') avg *= 0.8;
-      if (cadence === '2player') avg *= 1.2;
-
-      const digits = Math.floor(Math.log10(avg));
-      const factor = Math.pow(10, digits - 1);
-      const rounded = Math.round(avg / factor) * factor;
-
-      document.getElementById('calcRecommendedScore').innerText = Number(rounded).toLocaleString();
-      document.getElementById('calcResultBox').classList.remove('hidden');
-    }
-
-    (function initApp() {
-      try {
-        const cached = localStorage.getItem('pingolf_active_player');
-        if (cached) currentPlayer = JSON.parse(cached);
-      } catch (e) {}
-
-      updatePlayerHeader();
-      renderScorecard();
-
-      // Modal Triggers
-      document.getElementById('btnOpenPlayer').addEventListener('click', () => toggleModal('playerModal'));
-      document.getElementById('btnAlertSelectPlayer').addEventListener('click', () => toggleModal('playerModal'));
-      document.getElementById('btnClosePlayerModal').addEventListener('click', () => toggleModal('playerModal'));
-
-      document.getElementById('btnTourneyPicker').addEventListener('click', () => {
-        renderTourneyModalList();
-        toggleModal('tourneyModal');
-      });
-      document.getElementById('btnCloseTourneyModal').addEventListener('click', () => toggleModal('tourneyModal'));
-      document.getElementById('btnCreateTourney').addEventListener('click', createNewTournament);
-
-      document.getElementById('btnOpenCalc').addEventListener('click', () => toggleModal('calculatorModal'));
-      document.getElementById('btnCloseCalcModal').addEventListener('click', () => toggleModal('calculatorModal'));
-      document.getElementById('btnRunCalc').addEventListener('click', calculateDaveStewart);
-
-      document.getElementById('btnCloseScoreModal').addEventListener('click', () => toggleModal('scoreModal'));
-      document.getElementById('btnSnapPhoto').addEventListener('click', () => document.getElementById('inputProofPhoto').click());
-      document.getElementById('inputProofPhoto').addEventListener('change', handlePhotoInput);
-      document.getElementById('saveScoreBtn').addEventListener('click', saveActiveScore);
-
-      document.getElementById('tabBtnScorecard').addEventListener('click', () => switchTab('scorecard'));
-      document.getElementById('tabBtnLeaderboard').addEventListener('click', () => switchTab('leaderboard'));
-      document.getElementById('tabBtnAudit').addEventListener('click', () => switchTab('audit'));
-
-      document.getElementById('btnJoinTourney').addEventListener('click', registerPlayer);
-      document.getElementById('playerDropdown').addEventListener('change', (e) => {
-        const id = e.target.value;
-        const p = allPlayers.find(item => item.id === id);
-        if (p) {
-          currentPlayer = p;
-          localStorage.setItem('pingolf_active_player', JSON.stringify(currentPlayer));
-          updatePlayerHeader();
-          toggleModal('playerModal');
-          renderScorecard();
-          renderLeaderboard();
-        }
-      });
-
-      syncData();
-      setInterval(syncData, 5000);
-    })();
-  </script>
-</body>
-</html>
+        const actualScore = numVal ? parseInt(numVal, 10) : null
